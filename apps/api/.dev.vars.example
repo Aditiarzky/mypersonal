@@ -1,0 +1,3 @@
+FRONTEND_ORIGIN=http://localhost:5173
+AUTH_COOKIE_SECRET=replace-with-at-least-32-random-bytes
+COOKIE_SAME_SITE=Lax

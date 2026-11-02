@@ -1,148 +1,155 @@
 ﻿# Personal Portfolio
 
-Monorepo untuk web portfolio pribadi. Frontend menggunakan SvelteKit, REST API menggunakan Hono di Cloudflare Workers, dan database menggunakan Cloudflare D1 (SQLite). Bun dipakai untuk package manager dan menjalankan script workspace.
+Monorepo portfolio dengan SvelteKit di Cloudflare Pages, Hono REST API di Cloudflare Workers, D1 (SQLite), dan Bun workspaces.
 
-## Struktur
+## Struktur proyek
 
 ```text
-.
-├── apps/
-│   ├── web/                 # SvelteKit frontend
-│   │   ├── src/routes/      # Halaman dan route SvelteKit
-│   │   ├── src/lib/         # Komponen dan utilitas bersama
-│   │   └── static/          # File statis
-│   └── api/                 # Hono Worker
-│       ├── src/index.ts     # App Hono dan endpoint API
-│       └── migrations/      # Migrasi SQL D1
-├── REQUIREMENT.md           # Kebutuhan dan skema sistem
-├── package.json             # Bun workspace dan perintah root
-└── bun.lock                 # Lockfile dependensi
+apps/
++-- web/                         # SvelteKit frontend untuk Pages
++-- api/
+    +-- migrations/               # Migrasi SQL D1
+    +-- scripts/seed-admin.ts     # CLI seed admin via Wrangler
+    +-- src/
+        +-- application/auth/     # Use case autentikasi
+        +-- domain/auth/          # Kontrak password hasher
+        +-- domain/users/         # Model dan kontrak repository user
+        +-- infrastructure/
+        |   +-- database/         # Implementasi repository D1
+        |   +-- security/         # Implementasi hashing password
+        +-- presentation/http/
+        |   +-- middleware/      # Pemeriksaan sesi
+        |   +-- routes/          # REST endpoint auth
+        +-- app.ts               # Composition root dan routing
+        +-- index.ts             # Entry point Worker
+        +-- types.ts             # Binding dan context Hono
 ```
 
-## Prasyarat
+### Layer backend
 
-- Bun `1.4.4` (lihat nilai `packageManager` di `package.json`).
-- Akun Cloudflare diperlukan untuk deploy Pages/Worker dan migrasi D1 remote.
-- Login Wrangler diperlukan sebelum mengakses resource Cloudflare: `bunx wrangler login`.
+- **Domain** mendefinisikan user dan interface repository/password hasher tanpa bergantung pada Hono atau D1.
+- **Application** memuat alur bisnis autentikasi dan memakai interface domain.
+- **Infrastructure** menghubungkan interface domain ke D1 dan implementasi hashing.
+- **Presentation** mengubah HTTP request/response, cookie, dan middleware menjadi pemanggilan use case.
+- `src/app.ts` menyusun implementasi konkret untuk Worker; `src/index.ts` menjadi entry point Wrangler.
 
-## Instalasi awal
+## Prasyarat dan instalasi
 
-Jalankan dari direktori root repository:
+Gunakan Bun `1.4.4` sesuai `packageManager` pada root `package.json`. Dari root repository:
 
 ```sh
 bun install
 ```
 
-Bun menginstal dependensi kedua workspace dan menggunakan `bun.lock` untuk versi yang terkunci. Setelah dependency berubah, commit perubahan `bun.lock` bersama `package.json` terkait.
+Buat file konfigurasi lokal, lalu ganti semua nilai contoh:
 
-## Menjalankan untuk development
+```sh
+cp apps/api/.env.example apps/api/.env
+cp apps/api/.dev.vars.example apps/api/.dev.vars
+```
 
-Frontend dan API berjalan sebagai proses terpisah. Buka dua terminal dari root repository:
+- `apps/api/.env` dibaca oleh script seed Bun. Isi `ADMIN_EMAIL`, `ADMIN_PASSWORD`, dan bila perlu `ADMIN_NAME`.
+- `apps/api/.dev.vars` dibaca Wrangler untuk Worker lokal. Isi `FRONTEND_ORIGIN`, `AUTH_COOKIE_SECRET` (minimal 32 byte acak), dan `COOKIE_SAME_SITE`.
+- File rahasia lokal diabaikan Git. Jangan commit file `.env` atau `.dev.vars`.
+
+## Development lokal
+
+Jalankan dua proses dari root, masing-masing di terminal terpisah:
 
 ```sh
 bun run dev:web
-```
-
-Frontend Vite/SvelteKit tersedia di `http://localhost:5173`.
-
-```sh
 bun run dev:api
 ```
 
-Wrangler menjalankan Worker secara lokal, biasanya di `http://localhost:8787`. Endpoint awal yang tersedia:
+Frontend berjalan di `http://localhost:5173`; API Worker biasanya di `http://localhost:8787`. Endpoint status tersedia di `GET /api/health`.
 
-- `GET /` — pesan status API.
-- `GET /api/health` — JSON `{ "status": "ok" }`.
-
-Saat frontend mulai memanggil API dari browser, gunakan origin API lokal tersebut dan tambahkan konfigurasi CORS yang sesuai pada Hono bila diperlukan. Saat ini belum ada client API atau konfigurasi CORS khusus.
-
-## Database D1
-
-Binding pada Worker bernama `portfoliod1` dan database dikonfigurasi di `apps/api/wrangler.jsonc`. Berkas `apps/api/migrations/0001_initial_schema.sql` membuat tabel sesuai skema di `REQUIREMENT.md`.
-
-Untuk menyiapkan database lokal sebelum mengembangkan fitur yang memakai data:
+Untuk mengakses D1 lokal, terapkan migrasi lalu seed admin:
 
 ```sh
 bun run db:migrate:local
+bun run seed:admin:local
 ```
 
-Perintah ini menjalankan migrasi melalui Wrangler dengan mode `--local`; data lokal dikelola Wrangler dan tidak mengubah database Cloudflare remote. Endpoint health saat ini tidak membutuhkan database.
+Seed memakai `ADMIN_EMAIL` dan `ADMIN_PASSWORD` dari `apps/api/.env`. Seed bersifat **upsert**: menjalankannya lagi untuk email yang sama akan memperbarui nama dan hash password. Target default tidak pernah remote; gunakan perintah remote yang eksplisit hanya bila memang ingin mengubah Cloudflare D1.
 
-Untuk menerapkan migrasi pada database Cloudflare remote, pastikan sudah login, periksa target database di `apps/api/wrangler.jsonc`, lalu jalankan:
-
-```sh
-bun run --filter api db:migrate:remote
-```
-
-Perintah remote mengubah skema database Cloudflare. Tinjau SQL migrasi dan pastikan akun serta target database benar sebelum menjalankannya.
-
-## Pemeriksaan dan build
-
-```sh
-bun run check:web       # Pemeriksaan Svelte dan TypeScript
-bun run check:api       # TypeScript API
-bun run build:web       # Build SvelteKit untuk Cloudflare Pages
-```
-
-Untuk menjalankan hasil build di runtime Pages lokal, build terlebih dahulu lalu jalankan Wrangler Pages dev:
+Untuk menjalankan hasil build Pages dalam runtime lokal Cloudflare:
 
 ```sh
 bun run build:web
 bunx wrangler pages dev apps/web/.svelte-kit/cloudflare
 ```
 
-### Deploy frontend ke Cloudflare Pages
+## Autentikasi API
 
-Frontend menggunakan `@sveltejs/adapter-cloudflare`. Untuk monorepo ini, konfigurasi Pages dengan repository root sebagai root directory agar Bun workspace di root digunakan. Pada pengaturan build Pages, gunakan:
+Endpoint awal:
 
-| Pengaturan | Nilai |
-| --- | --- |
-| Root directory | Root repository (default) |
-| Build command | `bun run build:web` |
-| Build output directory | `apps/web/.svelte-kit/cloudflare` |
-| Production branch | Branch produksi repository |
+| Method | Path | Fungsi |
+| --- | --- | --- |
+| `POST` | `/api/auth/login` | Memeriksa email/password, lalu mengatur cookie sesi HttpOnly |
+| `GET` | `/api/auth/session` | Mengembalikan user untuk sesi yang valid |
+| `POST` | `/api/auth/logout` | Menghapus cookie sesi |
 
-Cloudflare Pages menyediakan Bun 1.4.4, sesuai `packageManager` di root `package.json`. Dengan Git integration, Pages membangun ulang dan menerbitkan commit pada branch yang dikonfigurasi; perubahan pada branch lain dapat dipakai untuk preview deployment. Lihat [panduan SvelteKit Pages](https://developers.cloudflare.com/pages/framework-guides/deploy-a-svelte-kit-site/) dan [konfigurasi monorepo Pages](https://developers.cloudflare.com/pages/configuration/monorepos/).
+Login menerima JSON `{"email":"...","password":"..."}`. Password di-hash memakai PBKDF2-HMAC-SHA256 melalui Web Crypto: 600.000 iterasi, salt acak 16 byte, derived key 128 bit. Format terserialisasi panjangnya 59 karakter sehingga sesuai dengan kolom `VARCHAR(60)`. Cookie sesi bertanda tangan berlaku 8 jam dan tidak mengandung password. Endpoint sesi mengambil ulang user dari D1. Untuk fetch browser ke API, set `credentials: 'include'`; CORS mengizinkan hanya origin yang sama dengan `FRONTEND_ORIGIN`, dan request browser yang mengubah state harus memiliki Origin tersebut. Klien seperti HTTPyac yang tidak mengirim header `Origin` dapat memanggil API tanpa CORS.
 
-Untuk deploy manual/direct upload, login Wrangler dan buat project Pages melalui dashboard terlebih dahulu, lalu jalankan dari root:
+Gunakan `COOKIE_SAME_SITE=Lax` untuk frontend/API yang satu site. Bila memakai domain default `*.pages.dev` dan `*.workers.dev`, keduanya lintas site: gunakan `COOKIE_SAME_SITE=None` dengan HTTPS (`Secure`) dan uji kebijakan cookie browser. Custom domain frontend dan API yang berbagi site biasanya lebih andal. Logout menghapus cookie di browser; karena sesi ditandatangani secara stateless, salinan cookie yang dicuri masih berlaku sampai masa 8 jam habis.
+
+Saat ini tidak ada endpoint registrasi. Admin dibuat melalui seed. Skema belum memiliki kolom role, sehingga role-based authorization belum diterapkan dan semua baris user yang ada dapat login. Belum ada rate limiting login. Workers Free membatasi CPU hingga 10 ms per request; verifikasi password perlu dipantau pada runtime dan plan target. Workers Paid menyediakan default 30 detik. Jangan menurunkan jumlah iterasi tanpa mengukur keamanan dan performa terlebih dahulu. [Panduan Cloudflare CPU limits](https://developers.cloudflare.com/workers/platform/limits/) dan [rekomendasi OWASP PBKDF2](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
+
+## Migrasi dan seed D1
+
+Binding D1 bernama `portfoliod1`, dikonfigurasi di `apps/api/wrangler.jsonc`. Migrasi skema berada di `apps/api/migrations/`.
 
 ```sh
-bunx wrangler login
-bun run build:web
-bunx wrangler pages deploy apps/web/.svelte-kit/cloudflare --project-name=YOUR_PAGES_PROJECT_NAME
+bun run db:migrate:local
+bun run seed:admin:local
 ```
 
-Ganti `YOUR_PAGES_PROJECT_NAME` dengan nama Pages project yang sudah dibuat. Git integration cocok untuk deploy otomatis dari repository; direct upload cocok untuk deploy manual. Perhatian: project Pages yang dibuat sebagai Direct Upload tidak dapat dialihkan ke Git integration; buat project baru bila ingin mengganti metode tersebut. Lihat [panduan Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/).
-
-### Deploy API ke Cloudflare Workers
-
-API adalah Worker terpisah dari frontend Pages. Setelah login dan konfigurasi D1 siap:
+Untuk database remote, login Wrangler terlebih dahulu dan periksa database ID pada konfigurasi:
 
 ```sh
 bunx wrangler login
 bun run --filter api db:migrate:remote
+bun run seed:admin:remote
+```
+
+Seed remote membaca kredensial dari `.env` lokal, membuat SQL sementara di folder `.wrangler`, menjalankannya dengan Wrangler, lalu menghapus file sementara. Perintah migrasi dan seed remote mengubah data/schema Cloudflare; pastikan akun dan targetnya benar sebelum menjalankan.
+
+## Pemeriksaan dan deployment
+
+```sh
+bun run check:web
+bun run check:api
+bun run build:web
+```
+
+Untuk deploy frontend melalui Pages Git integration, atur root directory repository, build command `bun run build:web`, dan output directory `apps/web/.svelte-kit/cloudflare`. Alternatif direct upload setelah project Pages dibuat:
+
+```sh
+bun run build:web
+bunx wrangler pages deploy apps/web/.svelte-kit/cloudflare --project-name=YOUR_PAGES_PROJECT_NAME
+```
+
+API adalah Worker terpisah. Atur `FRONTEND_ORIGIN` ke origin Pages yang tepat dan `COOKIE_SAME_SITE` sesuai domain pada Worker Variables. Simpan `AUTH_COOKIE_SECRET` sebagai secret, bukan variable biasa:
+
+```sh
+bunx wrangler secret put AUTH_COOKIE_SECRET --config apps/api/wrangler.jsonc
+```
+
+Kemudian deploy Worker:
+
+```sh
 bun run --filter api deploy
 ```
 
-Migrasi remote mengubah skema database Cloudflare. Tinjau migrasi dan pastikan database target sudah benar sebelum menjalankannya.
-## Alur perubahan skema
+Jangan letakkan `AUTH_COOKIE_SECRET`, `ADMIN_PASSWORD`, atau token Cloudflare di `vars`, source code, maupun repository. Gunakan Cloudflare secrets untuk secret runtime. Jika frontend mulai mengakses route API baru, pastikan route berada di bawah middleware CORS/origin yang sesuai.
 
-1. Ubah kebutuhan data di `REQUIREMENT.md` bila perubahan memengaruhi model sistem.
-2. Buat migrasi baru bernomor berikutnya di `apps/api/migrations/` (jangan mengedit migrasi yang sudah diterapkan pada remote).
-3. Terapkan dan periksa migrasi lokal dengan `bun run db:migrate:local`.
-4. Jalankan pemeriksaan frontend/API yang sesuai.
-5. Terapkan ke remote hanya setelah meninjau migrasi dan memastikan database target.
+## Alur perubahan database
 
-## Konfigurasi dan keamanan
-
-Jangan commit token Cloudflare, kredensial, atau rahasia. Gunakan `wrangler secret` untuk secret Worker. File `.env` diabaikan Git; dokumentasikan nama variabel yang diperlukan dan berikan contoh tanpa nilai rahasia bila konfigurasi environment ditambahkan. Jangan menyimpan password dalam bentuk teks biasa saat implementasi autentikasi; kebijakan hashing perlu ditetapkan sebelum endpoint autentikasi dibuat.
+Tambahkan migrasi bernomor baru di `apps/api/migrations/`; jangan mengubah migrasi yang sudah diterapkan pada remote. Uji dengan D1 lokal, jalankan `bun run check:api`, lalu terapkan remote setelah SQL ditinjau.
 
 ## Referensi
 
-- [SvelteKit](https://svelte.dev/docs/kit)
-- [Hono](https://hono.dev/docs/)
-- [Cloudflare Workers dan Wrangler](https://developers.cloudflare.com/workers/)
+- [SvelteKit dan Cloudflare Pages](https://developers.cloudflare.com/pages/framework-guides/deploy-a-svelte-kit-site/)
+- [Hono cookie helper](https://hono.dev/docs/helpers/cookie)
+- [Hono CORS middleware](https://hono.dev/docs/middleware/builtin/cors)
 - [Cloudflare D1 migrations](https://developers.cloudflare.com/d1/reference/migrations/)
-
-
-

@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "api",
   "private": true,
   "version": "0.0.1",
@@ -8,7 +8,9 @@
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
     "db:migrate:local": "wrangler d1 migrations apply portfoliod1 --local",
-    "db:migrate:remote": "wrangler d1 migrations apply portfoliod1 --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply portfoliod1 --remote",
+    "seed:admin:local": "bun --env-file=.env scripts/seed-admin.ts --local",
+    "seed:admin:remote": "bun --env-file=.env scripts/seed-admin.ts --remote"
   },
   "dependencies": {
     "hono": "^4.13.16"

@@ -9,7 +9,9 @@
     "build:web": "bun run --filter web build",
     "check:web": "bun run --filter web check",
     "check:api": "bun run --filter api typecheck",
-    "db:migrate:local": "bun run --filter api db:migrate:local"
+    "db:migrate:local": "bun run --filter api db:migrate:local",
+    "seed:admin:local": "bun run --filter api seed:admin:local",
+    "seed:admin:remote": "bun run --filter api seed:admin:remote"
   },
   "devDependencies": {
     "wrangler": "^4.156.0"
