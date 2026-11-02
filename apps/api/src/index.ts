@@ -1,7 +1,7 @@
 ﻿import { Hono } from 'hono';
 
 type Bindings = {
-  DB: D1Database;
+  portfoliod1: D1Database;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
