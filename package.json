@@ -1,0 +1,17 @@
+{
+  "name": "personal-portfolio",
+  "private": true,
+  "packageManager": "bun@1.4.4",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev:web": "bun run --filter web dev",
+    "dev:api": "bun run --filter api dev",
+    "build:web": "bun run --filter web build",
+    "check:web": "bun run --filter web check",
+    "check:api": "bun run --filter api typecheck",
+    "db:migrate:local": "bun run --filter api db:migrate:local"
+  },
+  "devDependencies": {
+    "wrangler": "^4.156.0"
+  }
+}

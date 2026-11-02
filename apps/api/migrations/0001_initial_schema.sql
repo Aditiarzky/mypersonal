@@ -1,0 +1,80 @@
+﻿CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  password VARCHAR(60) NOT NULL
+);
+
+CREATE TABLE profiles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  user_id INTEGER NOT NULL UNIQUE,
+  title VARCHAR(100) NOT NULL,
+  bio TEXT NOT NULL,
+  avatar_url TEXT,
+  cv_url TEXT,
+  location VARCHAR(100),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE social_links (
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  profile_id INTEGER NOT NULL,
+  platform VARCHAR(50) NOT NULL,
+  url TEXT NOT NULL,
+  FOREIGN KEY (profile_id) REFERENCES profiles(id)
+);
+
+CREATE TABLE projects (
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  title VARCHAR(150) NOT NULL,
+  slug VARCHAR(150) NOT NULL UNIQUE,
+  description TEXT NOT NULL,
+  thumbnail_url TEXT,
+  demo_url TEXT,
+  source_code_url TEXT,
+  order_position INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE skills (
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  name VARCHAR(50) NOT NULL,
+  category VARCHAR(50) NOT NULL,
+  icon_url TEXT
+);
+
+CREATE TABLE project_skills (
+  project_id INTEGER NOT NULL,
+  skill_id INTEGER NOT NULL,
+  PRIMARY KEY (project_id, skill_id),
+  FOREIGN KEY (project_id) REFERENCES projects(id),
+  FOREIGN KEY (skill_id) REFERENCES skills(id)
+);
+
+CREATE TABLE experiences (
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  company_name VARCHAR(150) NOT NULL,
+  role VARCHAR(100) NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE,
+  description TEXT
+);
+
+CREATE TABLE blogs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  slug VARCHAR(255) NOT NULL UNIQUE,
+  content TEXT NOT NULL,
+  cover_image_url TEXT,
+  status VARCHAR(20) DEFAULT 'draft',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE inbox_messages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  sender_name VARCHAR(100) NOT NULL,
+  sender_email VARCHAR(150) NOT NULL,
+  subject VARCHAR(200),
+  message TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
