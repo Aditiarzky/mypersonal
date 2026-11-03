@@ -1,7 +1,14 @@
-{
-	"extends": "$app/tsconfig",
-	"compilerOptions": {
-		"strict": true
-	},
-	"include": ["src", "vite.config.ts"]
+﻿{
+  "extends": "$app/tsconfig",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "$lib": ["./src/lib"],
+      "$lib/*": ["./src/lib/*"],
+      "$lib/components": ["./src/lib/components"],
+      "$lib/utils": ["./src/lib/utils"],
+      "$lib/hooks": ["./src/lib/hooks"]
+    }
+  },
+  "include": ["src", "vite.config.ts"]
 }
