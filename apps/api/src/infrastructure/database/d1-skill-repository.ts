@@ -48,8 +48,9 @@ export class D1SkillRepository implements SkillRepository {
   async delete(id: number): Promise<boolean> {
     const results = await this.database.batch([
       this.database.prepare('DELETE FROM project_skills WHERE skill_id = ?').bind(id),
+      this.database.prepare('DELETE FROM experience_skills WHERE skill_id = ?').bind(id),
       this.database.prepare('DELETE FROM skills WHERE id = ?').bind(id)
     ]);
-    return (results[1]?.meta.changes ?? 0) > 0;
+    return (results[2]?.meta.changes ?? 0) > 0;
   }
 }

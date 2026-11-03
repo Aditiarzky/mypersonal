@@ -89,6 +89,7 @@
     startDate: new Date().toISOString().slice(0, 10),
     endDate: "",
     description: "",
+    skillIds: [],
   });
 
   // Session validation and initial data loading.
@@ -154,6 +155,7 @@
       startDate: new Date().toISOString().slice(0, 10),
       endDate: "",
       description: "",
+      skillIds: [],
     };
     editingId = null;
   }
@@ -232,6 +234,7 @@
       startDate: experience.startDate,
       endDate: experience.endDate ?? "",
       description: experience.description ?? "",
+      skillIds: experience.skills.map((skill) => skill.id),
     };
     formOpen = true;
   }
@@ -307,6 +310,7 @@
           startDate: experienceForm.startDate,
           endDate: nullable(experienceForm.endDate),
           description: nullable(experienceForm.description),
+          skillIds: experienceForm.skillIds,
         };
         if (editingId === null) await experiencesApi.create(payload);
         else await experiencesApi.update(editingId, payload);
@@ -504,7 +508,7 @@
                 editing={editingId !== null}
               />
             {:else}
-              <ExperienceFormFields bind:form={experienceForm} />
+              <ExperienceFormFields bind:form={experienceForm} {skills} />
             {/if}
 
             <div class="mt-5 flex justify-end">

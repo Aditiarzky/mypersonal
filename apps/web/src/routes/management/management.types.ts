@@ -44,4 +44,5 @@ export interface ExperienceFormData {
   startDate: string;
   endDate: string;
   description: string;
+  skillIds: number[];
 }

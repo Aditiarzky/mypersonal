@@ -104,10 +104,10 @@ Dengan begitu perubahan format envelope dapat dilakukan terpusat pada utility te
 
 - `GET /api/skills` dan `GET /api/skills/:id` dapat diakses publik.
 - `POST /api/skills`, `PATCH /api/skills/:id`, dan `DELETE /api/skills/:id` memerlukan sesi.
-- Create wajib berisi `name` dan `category` (masing-masing 1–50 karakter); `iconUrl` opsional dan dapat `null` atau URL HTTP/HTTPS.
+- Create wajib berisi `name` dan `category` (masing-masing 1ï¿½50 karakter); `iconUrl` opsional dan dapat `null` atau URL HTTP/HTTPS.
 - PATCH menerima satu atau lebih dari `name`, `category`, dan `iconUrl`. Field yang tidak dikirim tidak berubah.
 - GET mengembalikan `{success:true,data:...}`; POST mengembalikan `201`; PATCH mengembalikan `200`; DELETE mengembalikan `204` tanpa body. ID tidak valid menghasilkan `400 invalid_id`, payload tidak valid `400 invalid_request`, dan skill tidak ditemukan `404 skill_not_found`.
-- Menghapus skill juga menghapus baris terkait pada `project_skills`, sehingga proyek tetap ada dan respons proyek tidak lagi memuat skill tersebut.
+- Menghapus skill juga menghapus baris terkait pada `project_skills` dan `experience_skills`, sehingga proyek dan pengalaman tetap ada dan tidak lagi memuat skill tersebut.
 
 Contoh create:
 
@@ -155,7 +155,7 @@ Payload create:
 | PATCH | `/api/social-links/:id` | Memperbarui field yang dikirim; field yang tidak dikirim tetap. |
 | DELETE | `/api/social-links/:id` | Menghapus social link; sukses `204` tanpa body. |
 
-Create menerima `profileId`, `platform` (1–50 karakter), dan `url` HTTP/HTTPS (maksimal 2.000 karakter). Profile yang dirujuk harus ada; jika tidak, API mengembalikan `404 profile_not_found`. Contoh:
+Create menerima `profileId`, `platform` (1ï¿½50 karakter), dan `url` HTTP/HTTPS (maksimal 2.000 karakter). Profile yang dirujuk harus ada; jika tidak, API mengembalikan `404 profile_not_found`. Contoh:
 
 ```json
 {"profileId":1,"platform":"GitHub","url":"https://github.com/example"}
@@ -181,13 +181,13 @@ GET publik; POST, PATCH, dan DELETE memerlukan sesi.
 
 | Method | Path | Keterangan |
 | --- | --- | --- |
-| GET | `/api/experiences` | Daftar pengalaman, terbaru berdasarkan `startDate` lebih dulu. |
-| GET | `/api/experiences/:id` | Detail pengalaman; `404 experience_not_found` jika tidak ada. |
-| POST | `/api/experiences` | Membuat pengalaman; sukses `201`. `companyName`, `role`, dan `startDate` wajib. |
-| PATCH | `/api/experiences/:id` | Mengubah field yang dikirim; field yang tidak dikirim tetap. |
+| GET | `/api/experiences` | Daftar pengalaman beserta `skills`, terbaru berdasarkan `startDate` lebih dulu. |
+| GET | `/api/experiences/:id` | Detail pengalaman beserta `skills`; `404 experience_not_found` jika tidak ada. |
+| POST | `/api/experiences` | Membuat pengalaman; sukses `201`. `companyName`, `role`, dan `startDate` wajib. `skillIds` opsional. |
+| PATCH | `/api/experiences/:id` | Mengubah field yang dikirim; field yang tidak dikirim tetap. `skillIds` dapat mengganti seluruh relasi. |
 | DELETE | `/api/experiences/:id` | Menghapus pengalaman; sukses `204` tanpa body. |
 
-`startDate` dan `endDate` memakai format `YYYY-MM-DD`; `endDate` nullable dan tidak boleh mendahului `startDate`. `description` juga nullable. Contoh:
+`startDate` dan `endDate` memakai format `YYYY-MM-DD`; `endDate` nullable dan tidak boleh mendahului `startDate`. `description` juga nullable. `skillIds` berupa array ID skill yang sudah ada; saat tidak dikirim pada create, pengalaman dibuat tanpa skill, sedangkan PATCH tanpa field `skillIds` mempertahankan relasi yang ada. Kirim `[]` untuk menghapus semua relasi. ID yang tidak ditemukan menghasilkan `400 unknown_skill_ids` dengan `details.skillIds`. Contoh:
 
 ```json
 {
@@ -195,6 +195,7 @@ GET publik; POST, PATCH, dan DELETE memerlukan sesi.
   "role": "Software Engineer",
   "startDate": "2024-01-01",
   "endDate": null,
-  "description": "Membangun aplikasi web."
+  "description": "Membangun aplikasi web.",
+  "skillIds": [1, 2]
 }
 ```

@@ -7,3 +7,10 @@ export interface ExperienceRepository {
   update(id: number, input: UpdateExperienceInput): Promise<Experience | null>;
   delete(id: number): Promise<boolean>;
 }
+
+export class ExperienceSkillsNotFoundError extends Error {
+  constructor(readonly skillIds: number[]) {
+    super(`Unknown skill IDs: ${skillIds.join(', ')}`);
+    this.name = 'ExperienceSkillsNotFoundError';
+  }
+}

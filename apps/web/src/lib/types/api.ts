@@ -142,6 +142,7 @@ export interface Experience {
   startDate: string;
   endDate: string | null;
   description: string | null;
+  skills: Skill[];
 }
 
 export interface CreateExperienceRequest {
@@ -150,6 +151,7 @@ export interface CreateExperienceRequest {
   startDate: string;
   endDate?: string | null;
   description?: string | null;
+  skillIds?: number[];
 }
 
 export interface UpdateExperienceRequest {
@@ -158,6 +160,7 @@ export interface UpdateExperienceRequest {
   startDate?: string;
   endDate?: string | null;
   description?: string | null;
+  skillIds?: number[];
 }
 
 // Project Skill
