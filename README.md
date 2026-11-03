@@ -12,14 +12,16 @@ apps/
     +-- scripts/seed-admin.ts     # CLI seed admin via Wrangler
     +-- src/
         +-- application/auth/     # Use case autentikasi
+        +-- application/projects/ # Use case CRUD proyek
         +-- domain/auth/          # Kontrak password hasher
         +-- domain/users/         # Model dan kontrak repository user
+        +-- domain/projects/     # Model dan kontrak repository proyek
         +-- infrastructure/
-        |   +-- database/         # Implementasi repository D1
+        |   +-- database/         # Implementasi repository D1 proyek/user
         |   +-- security/         # Implementasi hashing password
         +-- presentation/http/
         |   +-- middleware/      # Pemeriksaan sesi
-        |   +-- routes/          # REST endpoint auth
+        |   +-- routes/          # REST endpoint auth dan proyek
         +-- app.ts               # Composition root dan routing
         +-- index.ts             # Entry point Worker
         +-- types.ts             # Binding dan context Hono
@@ -89,12 +91,42 @@ Endpoint awal:
 | `GET` | `/api/auth/session` | Mengembalikan user untuk sesi yang valid |
 | `POST` | `/api/auth/logout` | Menghapus cookie sesi |
 
+Dokumentasi lengkap request, respons, autentikasi, dan error tersedia di [`docs/API.md`](docs/API.md). Perbarui dokumen tersebut setiap kali endpoint ditambah, diubah, atau dihapus.
+
 Login menerima JSON `{"email":"...","password":"..."}`. Password di-hash memakai PBKDF2-HMAC-SHA256 melalui Web Crypto: 600.000 iterasi, salt acak 16 byte, derived key 128 bit. Format terserialisasi panjangnya 59 karakter sehingga sesuai dengan kolom `VARCHAR(60)`. Cookie sesi bertanda tangan berlaku 8 jam dan tidak mengandung password. Endpoint sesi mengambil ulang user dari D1. Untuk fetch browser ke API, set `credentials: 'include'`; CORS mengizinkan hanya origin yang sama dengan `FRONTEND_ORIGIN`, dan request browser yang mengubah state harus memiliki Origin tersebut. Klien seperti HTTPyac yang tidak mengirim header `Origin` dapat memanggil API tanpa CORS.
 
 Gunakan `COOKIE_SAME_SITE=Lax` untuk frontend/API yang satu site. Bila memakai domain default `*.pages.dev` dan `*.workers.dev`, keduanya lintas site: gunakan `COOKIE_SAME_SITE=None` dengan HTTPS (`Secure`) dan uji kebijakan cookie browser. Custom domain frontend dan API yang berbagi site biasanya lebih andal. Logout menghapus cookie di browser; karena sesi ditandatangani secara stateless, salinan cookie yang dicuri masih berlaku sampai masa 8 jam habis.
 
 Saat ini tidak ada endpoint registrasi. Admin dibuat melalui seed. Skema belum memiliki kolom role, sehingga role-based authorization belum diterapkan dan semua baris user yang ada dapat login. Belum ada rate limiting login. Workers Free membatasi CPU hingga 10 ms per request; verifikasi password perlu dipantau pada runtime dan plan target. Workers Paid menyediakan default 30 detik. Jangan menurunkan jumlah iterasi tanpa mengukur keamanan dan performa terlebih dahulu. [Panduan Cloudflare CPU limits](https://developers.cloudflare.com/workers/platform/limits/) dan [rekomendasi OWASP PBKDF2](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
 
+## CRUD proyek
+
+Route proyek dipasang pada `/api/projects`. Relasi `skills` dikirim sebagai `skillIds`; respons menyertakan array `skills` lengkap. `GET` bersifat publik. `POST`, `PATCH`, dan `DELETE` memerlukan cookie sesi yang valid.
+
+| Method | Path | Fungsi |
+| --- | --- | --- |
+| `GET` | `/api/projects` | Daftar proyek beserta skills, urut `orderPosition` lalu tanggal terbaru |
+| `GET` | `/api/projects/:slug` | Detail proyek beserta skills |
+| `POST` | `/api/projects` | Buat proyek dan relasi skills |
+| `PATCH` | `/api/projects/:id` | Perbarui field proyek dan/atau ganti `skillIds` |
+| `DELETE` | `/api/projects/:id` | Hapus relasi project-skills lalu proyek |
+
+Contoh body create:
+
+```json
+{
+  "title": "Portfolio API",
+  "slug": "portfolio-api",
+  "description": "REST API untuk portfolio.",
+  "thumbnailUrl": null,
+  "demoUrl": "https://example.com",
+  "sourceCodeUrl": "https://github.com/example/portfolio",
+  "orderPosition": 0,
+  "skillIds": [1, 2]
+}
+```
+
+Untuk menghapus relasi skills saat update, kirim `"skillIds": []`. Jika `skillIds` tidak disertakan dalam PATCH, relasi saat ini dipertahankan. ID skill yang tidak ada menghasilkan `400`; slug duplikat menghasilkan `409`. Karena skema belum memiliki role, otorisasi CRUD saat ini memeriksa sesi login saja, bukan role admin.
 ## Migrasi dan seed D1
 
 Binding D1 bernama `portfoliod1`, dikonfigurasi di `apps/api/wrangler.jsonc`. Migrasi skema berada di `apps/api/migrations/`.

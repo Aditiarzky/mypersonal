@@ -1,0 +1,13 @@
+POST http://localhost:8787/api/auth/login
+Content-Type: application/json
+
+{
+  "title": "Portfolio API",
+  "slug": "portfolio-api",
+  "description": "REST API untuk portfolio.",
+  "thumbnailUrl": null,
+  "demoUrl": "https://example.com",
+  "sourceCodeUrl": "https://github.com/example/portfolio",
+  "orderPosition": 0,
+  "skillIds": [1, 2]
+}

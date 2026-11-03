@@ -6,6 +6,7 @@ import type { UserRepository } from '../../../domain/users/user-repository';
 import { authenticateUser } from '../../../application/auth/authenticate-user';
 import { createRequireSession } from '../middleware/require-session';
 import { clearSessionCookie, issueSessionCookie } from '../session-cookie';
+import { errorResponse, successResponse } from '../api-response';
 
 export function createAuthRoutes(dependencies: {
   usersFor: (context: Context<AppEnv>) => UserRepository;
@@ -27,7 +28,7 @@ export function createAuthRoutes(dependencies: {
       input.password.length === 0 ||
       new TextEncoder().encode(input.password).length > 1024
     ) {
-      return c.json({ error: 'invalid_request' }, 400);
+      return errorResponse(c, 'invalid_request', 400);
     }
 
     const user = await authenticateUser(
@@ -36,21 +37,22 @@ export function createAuthRoutes(dependencies: {
     );
 
     if (!user) {
-      return c.json({ error: 'invalid_credentials' }, 401);
+      return errorResponse(c, 'invalid_credentials', 401);
     }
 
     await issueSessionCookie(c, user.id);
-    return c.json({ success: true, data: { user } });
+    return successResponse(c, { user });
   });
 
   authRoutes.get('/session', requireSession, (c) => {
-    return c.json({ success: true, data: { user: c.get('sessionUser') } });
+    return successResponse(c, { user: c.get('sessionUser') });
   });
 
   authRoutes.post('/logout', (c) => {
     clearSessionCookie(c);
-    return c.json({ success: true, data: { loggedOut: true } });
+    return successResponse(c, { loggedOut: true });
   });
 
   return authRoutes;
 }
+

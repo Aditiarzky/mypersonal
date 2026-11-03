@@ -3,6 +3,7 @@ import type { Context } from 'hono';
 import type { AppEnv } from '../../../types';
 import type { UserRepository } from '../../../domain/users/user-repository';
 import { readSessionCookie } from '../session-cookie';
+import { errorResponse } from '../api-response';
 
 export function createRequireSession(
   usersFor: (context: Context<AppEnv>) => UserRepository
@@ -10,15 +11,16 @@ export function createRequireSession(
   return createMiddleware<AppEnv>(async (c, next) => {
     const session = await readSessionCookie(c);
     if (!session) {
-      return c.json({ error: 'unauthorized' }, 401);
+      return errorResponse(c, 'unauthorized', 401);
     }
 
     const user = await usersFor(c).findById(session.userId);
     if (!user) {
-      return c.json({ error: 'unauthorized' }, 401);
+      return errorResponse(c, 'unauthorized', 401);
     }
 
     c.set('sessionUser', user);
     await next();
   });
 }
+
