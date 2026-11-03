@@ -124,7 +124,7 @@ Contoh create:
 | --- | --- | --- |
 | GET | `/api/profiles` | Daftar profile dengan `socialLinks`. |
 | GET | `/api/profiles/:id` | Detail profile dan `socialLinks`; `404 profile_not_found` jika tidak ada. |
-| POST | `/api/profiles` | Membuat profile; sukses `201`. `userId`, `title`, dan `bio` wajib. |
+| POST | `/api/profiles` | Membuat profile; sukses `201`. `userId`, `name`, `title`, dan `bio` wajib. |
 | PATCH | `/api/profiles/:id` | Mengubah field yang dikirim; field lain tetap. |
 | DELETE | `/api/profiles/:id` | Menghapus profile dan social links terkait; sukses `204` tanpa body. |
 
@@ -133,6 +133,7 @@ Payload create:
 ```json
 {
   "userId": 1,
+  "name": "Jane Doe",
   "title": "Full Stack Developer",
   "bio": "Membangun aplikasi web.",
   "avatarUrl": null,
@@ -141,7 +142,7 @@ Payload create:
 }
 ```
 
-`userId` harus merujuk ke user yang ada dan hanya boleh dipakai satu profile. User tidak ditemukan menghasilkan `404 user_not_found`; `userId` duplikat menghasilkan `409 profile_user_conflict`. `avatarUrl` dan `cvUrl` menerima `null` atau URL HTTP/HTTPS; `location` nullable. Setiap item respons profile menyertakan `socialLinks`, yang berisi data dari endpoint `/api/social-links`.
+`userId` harus merujuk ke user yang ada dan hanya boleh dipakai satu profile. `name` dan `title` masing-masing menerima 1–100 karakter. User tidak ditemukan menghasilkan `404 user_not_found`; `userId` duplikat menghasilkan `409 profile_user_conflict`. `avatarUrl` dan `cvUrl` menerima `null` atau URL HTTP/HTTPS; `location` nullable. Setiap item respons profile menyertakan `socialLinks`, yang berisi data dari endpoint `/api/social-links`. Migrasi mengisi `name` profile lama dari nama user terkait.
 
 ## Social links CRUD
 

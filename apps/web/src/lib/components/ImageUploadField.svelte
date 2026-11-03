@@ -58,10 +58,26 @@
   }
 
   function handlePaste(event: ClipboardEvent) {
-    const files = Array.from(event.clipboardData?.items ?? [])
+    const clipboardData = event.clipboardData;
+    if (!clipboardData) return;
+
+    const itemFiles = Array.from(clipboardData.items)
       .filter((item) => item.type.startsWith("image/"))
       .map((item) => item.getAsFile())
       .filter((file): file is File => file !== null);
+    const files = [
+      ...itemFiles,
+      ...Array.from(clipboardData.files).filter(
+        (file) =>
+          file.type.startsWith("image/") &&
+          !itemFiles.some(
+            (itemFile) =>
+              itemFile.name === file.name &&
+              itemFile.size === file.size &&
+              itemFile.lastModified === file.lastModified,
+          ),
+      ),
+    ];
 
     if (!files.length) return;
     event.preventDefault();
@@ -76,16 +92,18 @@
   );
 </script>
 
-<div class="min-w-0" onpaste={handlePaste}>
+<div class="min-w-0">
   <label class="text-sm font-medium text-slate-700">
     {label}
     {#if multiple}<textarea
         rows="3"
         bind:value
+        onpaste={handlePaste}
         class="management-input mt-1.5"
         placeholder="URL gambar, satu per baris atau paste gambar di sini"></textarea>{:else}<input
         type="url"
         bind:value
+        onpaste={handlePaste}
         class="management-input mt-1.5"
         placeholder="https://..., pilih, atau paste gambar di sini"
       />{/if}

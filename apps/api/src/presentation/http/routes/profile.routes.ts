@@ -13,17 +13,17 @@ type ProfileInput = CreateProfileInput | UpdateProfileInput;
 function parseProfileBody(value: unknown, partial: boolean): ProfileInput | null {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
   const input = value as Record<string, unknown>;
-  const allowed = new Set(['userId', 'title', 'bio', 'avatarUrl', 'cvUrl', 'location']);
+  const allowed = new Set(['userId', 'name', 'title', 'bio', 'avatarUrl', 'cvUrl', 'location']);
   const keys = Object.keys(input);
   if (keys.length === 0 || keys.some((key) => !allowed.has(key))) return null;
-  if (!partial && (!('userId' in input) || !('title' in input) || !('bio' in input))) return null;
+  if (!partial && (!('userId' in input) || !('name' in input) || !('title' in input) || !('bio' in input))) return null;
 
   const result: UpdateProfileInput = {};
   if ('userId' in input) {
     if (!Number.isSafeInteger(input.userId) || Number(input.userId) < 1) return null;
     result.userId = input.userId as number;
   }
-  for (const [key, maxLength] of [['title', 100], ['bio', 100_000], ['location', 100]] as const) {
+  for (const [key, maxLength] of [['name', 100], ['title', 100], ['bio', 100_000], ['location', 100]] as const) {
     if (!(key in input)) continue;
     const value = input[key];
     if (value === null && key === 'location') { result.location = null; continue; }

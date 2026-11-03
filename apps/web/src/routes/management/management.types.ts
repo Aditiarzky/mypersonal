@@ -25,6 +25,7 @@ export interface SkillFormData {
 }
 
 export interface ProfileFormData {
+  name: string;
   title: string;
   bio: string;
   avatarUrl: string;

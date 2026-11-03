@@ -21,7 +21,7 @@
         class="management-input mt-1.5"
         ><option value="">Pilih profile</option
         >{#each profiles as profile (profile.id)}<option
-            value={String(profile.id)}>{profile.title}</option
+            value={String(profile.id)}>{profile.name} — {profile.title}</option
           >{/each}</select
       ></label
     >

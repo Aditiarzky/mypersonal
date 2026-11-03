@@ -3,11 +3,11 @@ import { ProfileUserNotFoundError } from '../../domain/profiles/profile-reposito
 import type { ProfileRepository } from '../../domain/profiles/profile-repository';
 
 interface ProfileRow {
-  id: number; userId: number; title: string; bio: string;
+  id: number; userId: number; name: string; title: string; bio: string;
   avatarUrl: string | null; cvUrl: string | null; location: string | null;
 }
 interface SocialLinkRow { id: number; platform: string; url: string }
-const SELECT_PROFILES = `SELECT id, user_id AS userId, title, bio,
+const SELECT_PROFILES = `SELECT id, user_id AS userId, name, title, bio,
   avatar_url AS avatarUrl, cv_url AS cvUrl, location FROM profiles`;
 
 export class D1ProfileRepository implements ProfileRepository {
@@ -26,9 +26,9 @@ export class D1ProfileRepository implements ProfileRepository {
   async create(input: CreateProfileInput): Promise<Profile> {
     await this.assertUserExists(input.userId);
     const row = await this.database.prepare(
-      `INSERT INTO profiles (user_id, title, bio, avatar_url, cv_url, location)
-       VALUES (?, ?, ?, ?, ?, ?) RETURNING id`
-    ).bind(input.userId, input.title, input.bio, input.avatarUrl, input.cvUrl, input.location).first<{ id: number }>();
+      `INSERT INTO profiles (user_id, name, title, bio, avatar_url, cv_url, location)
+       VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`
+    ).bind(input.userId, input.name, input.title, input.bio, input.avatarUrl, input.cvUrl, input.location).first<{ id: number }>();
     if (!row) throw new Error('Profile insert did not return an ID.');
     const profile = await this.findById(row.id);
     if (!profile) throw new Error('Created profile could not be reloaded.');
@@ -38,7 +38,7 @@ export class D1ProfileRepository implements ProfileRepository {
   async update(id: number, input: UpdateProfileInput): Promise<Profile | null> {
     if (input.userId !== undefined) await this.assertUserExists(input.userId);
     const fields: Array<[keyof UpdateProfileInput, string]> = [
-      ['userId', 'user_id'], ['title', 'title'], ['bio', 'bio'],
+      ['userId', 'user_id'], ['name', 'name'], ['title', 'title'], ['bio', 'bio'],
       ['avatarUrl', 'avatar_url'], ['cvUrl', 'cv_url'], ['location', 'location']
     ];
     const updates: string[] = [];

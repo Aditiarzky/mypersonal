@@ -97,6 +97,7 @@ export interface SocialLink {
 export interface Profile {
   id: number;
   userId: number;
+  name: string;
   title: string;
   bio: string;
   avatarUrl: string | null;
@@ -107,6 +108,7 @@ export interface Profile {
 
 export interface CreateProfileRequest {
   userId: number;
+  name: string;
   title: string;
   bio: string;
   avatarUrl?: string | null;
@@ -115,6 +117,7 @@ export interface CreateProfileRequest {
 }
 
 export interface UpdateProfileRequest {
+  name?: string;
   title?: string;
   bio?: string;
   avatarUrl?: string | null;

@@ -1,7 +1,7 @@
 import type { ContentEntity, ContentRecord, ContentRepository } from '../../domain/content/content-repository';
 
 const CONFIG = {
-  profiles: { table: 'profiles', fields: { userId: 'user_id', title: 'title', bio: 'bio', avatarUrl: 'avatar_url', cvUrl: 'cv_url', location: 'location' }, order: 'id ASC' },
+  profiles: { table: 'profiles', fields: { userId: 'user_id', name: 'name', title: 'title', bio: 'bio', avatarUrl: 'avatar_url', cvUrl: 'cv_url', location: 'location' }, order: 'id ASC' },
   social_links: { table: 'social_links', fields: { profileId: 'profile_id', platform: 'platform', url: 'url' }, order: 'id ASC' },
   skills: { table: 'skills', fields: { name: 'name', category: 'category', iconUrl: 'icon_url' }, order: 'category ASC, name ASC, id ASC' },
   experiences: { table: 'experiences', fields: { companyName: 'company_name', role: 'role', startDate: 'start_date', endDate: 'end_date', description: 'description' }, order: 'start_date DESC, id DESC' },

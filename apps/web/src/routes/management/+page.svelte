@@ -72,6 +72,7 @@
     iconUrl: "",
   });
   let profileForm = $state<ProfileFormData>({
+    name: "",
     title: "",
     bio: "",
     avatarUrl: "",
@@ -142,6 +143,7 @@
     };
     skillForm = { name: "", category: "", iconUrl: "" };
     profileForm = {
+      name: "",
       title: "",
       bio: "",
       avatarUrl: "",
@@ -205,6 +207,7 @@
     clearForm();
     editingId = profile.id;
     profileForm = {
+      name: profile.name,
       title: profile.title,
       bio: profile.bio,
       avatarUrl: profile.avatarUrl ?? "",
@@ -277,6 +280,7 @@
         else await skillsApi.update(editingId, payload);
       } else if (activeSection === "profiles") {
         const payload = {
+          name: profileForm.name.trim(),
           title: profileForm.title.trim(),
           bio: profileForm.bio.trim(),
           avatarUrl: nullable(profileForm.avatarUrl),
@@ -534,6 +538,7 @@
           <ManagementDataList
             section={activeSection}
             {loading}
+            currentUserId={$authStore.user?.id}
             {projects}
             {skills}
             {profiles}

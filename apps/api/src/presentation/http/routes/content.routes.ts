@@ -11,7 +11,7 @@ import { errorResponse, successResponse } from '../api-response';
 const MAX_TEXT = 100_000;
 type FieldRule = { type: 'string' | 'integer'; required?: boolean; nullable?: boolean; max?: number; enum?: string[] };
 const RULES: Record<ContentEntity, Record<string, FieldRule>> = {
-  profiles: { userId: { type: 'integer', required: true }, title: { type: 'string', required: true, max: 100 }, bio: { type: 'string', required: true, max: MAX_TEXT }, avatarUrl: { type: 'string', nullable: true, max: 2000 }, cvUrl: { type: 'string', nullable: true, max: 2000 }, location: { type: 'string', nullable: true, max: 100 } },
+  profiles: { userId: { type: 'integer', required: true }, name: { type: 'string', required: true, max: 100 }, title: { type: 'string', required: true, max: 100 }, bio: { type: 'string', required: true, max: MAX_TEXT }, avatarUrl: { type: 'string', nullable: true, max: 2000 }, cvUrl: { type: 'string', nullable: true, max: 2000 }, location: { type: 'string', nullable: true, max: 100 } },
   social_links: { profileId: { type: 'integer', required: true }, platform: { type: 'string', required: true, max: 50 }, url: { type: 'string', required: true, max: 2000 } },
   skills: { name: { type: 'string', required: true, max: 50 }, category: { type: 'string', required: true, max: 50 }, iconUrl: { type: 'string', nullable: true, max: 2000 } },
   experiences: { companyName: { type: 'string', required: true, max: 150 }, role: { type: 'string', required: true, max: 100 }, startDate: { type: 'string', required: true, max: 10 }, endDate: { type: 'string', nullable: true, max: 10 }, description: { type: 'string', nullable: true, max: MAX_TEXT } },
@@ -136,7 +136,6 @@ export function createContentRoutes(dependencies: {
   routes.delete('/inbox-messages/:id', requireSession, (c) => remove(c, 'inbox_messages'));
   return routes;
 }
-
 
 
 

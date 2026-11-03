@@ -7,6 +7,7 @@ export interface SocialLinkSummary {
 export interface Profile {
   id: number;
   userId: number;
+  name: string;
   title: string;
   bio: string;
   avatarUrl: string | null;
@@ -17,6 +18,7 @@ export interface Profile {
 
 export interface CreateProfileInput {
   userId: number;
+  name: string;
   title: string;
   bio: string;
   avatarUrl: string | null;

@@ -13,6 +13,15 @@
 <!-- Profile form fields -->
 <div class="grid gap-4 sm:grid-cols-2">
   <label class="text-sm font-medium text-slate-700 sm:col-span-2"
+    >Nama<input
+      required
+      maxlength="100"
+      bind:value={form.name}
+      class="management-input mt-1.5"
+      autocomplete="name"
+    /></label
+  >
+  <label class="text-sm font-medium text-slate-700 sm:col-span-2"
     >Jabatan / headline<input
       required
       maxlength="100"
