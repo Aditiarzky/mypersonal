@@ -1,0 +1,24 @@
+@baseUrl = {{API_BASE_URL}}
+
+GET {{baseUrl}}/
+
+{{
+const assert = require('assert');
+test('root endpoint responds with API status page', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.match(response.body, /API active/);
+});
+}}
+
+###
+
+GET {{baseUrl}}/api/health
+
+{{
+const assert = require('assert');
+test('health endpoint returns success envelope', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.success, true);
+  assert.strictEqual(response.parsedBody.data.status, 'ok');
+});
+}}

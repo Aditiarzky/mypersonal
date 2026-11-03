@@ -23,6 +23,11 @@ function readText(value: unknown, maxLength: number, allowNull = false): string 
   return value.trim();
 }
 
+function readImages(value: unknown): string[] | undefined {
+  if (!Array.isArray(value) || value.some((url) => typeof url !== 'string' || url.trim().length === 0 || url.length > MAX_URL_LENGTH)) return undefined;
+  return value.map((url) => (url as string).trim());
+}
+
 function readSkillIds(value: unknown): number[] | undefined {
   if (!Array.isArray(value) || value.some((id) => !Number.isSafeInteger(id) || id < 1)) return undefined;
   return [...new Set(value as number[])];
@@ -34,6 +39,7 @@ function parseCreateInput(value: unknown): CreateProjectInput | null {
   const slug = readText(value.slug, 150);
   const description = readText(value.description, 100_000);
   const thumbnailUrl = value.thumbnailUrl === undefined ? null : readText(value.thumbnailUrl, MAX_URL_LENGTH, true);
+  const images = value.images === undefined || value.images === null ? null : readImages(value.images);
   const demoUrl = value.demoUrl === undefined ? null : readText(value.demoUrl, MAX_URL_LENGTH, true);
   const sourceCodeUrl = value.sourceCodeUrl === undefined ? null : readText(value.sourceCodeUrl, MAX_URL_LENGTH, true);
   const orderPosition = value.orderPosition === undefined ? 0 : value.orderPosition;
@@ -41,7 +47,7 @@ function parseCreateInput(value: unknown): CreateProjectInput | null {
 
   if (
     typeof title !== 'string' || typeof slug !== 'string' || typeof description !== 'string' ||
-    thumbnailUrl === undefined || demoUrl === undefined || sourceCodeUrl === undefined ||
+    thumbnailUrl === undefined || images === undefined || demoUrl === undefined || sourceCodeUrl === undefined ||
     !Number.isSafeInteger(orderPosition) || skillIds === undefined
   ) return null;
 
@@ -50,6 +56,7 @@ function parseCreateInput(value: unknown): CreateProjectInput | null {
     slug,
     description,
     thumbnailUrl,
+    images,
     demoUrl,
     sourceCodeUrl,
     orderPosition: orderPosition as number,
@@ -59,7 +66,7 @@ function parseCreateInput(value: unknown): CreateProjectInput | null {
 
 function parseUpdateInput(value: unknown): UpdateProjectInput | null {
   if (!isObject(value)) return null;
-  const allowed = new Set(['title', 'slug', 'description', 'thumbnailUrl', 'demoUrl', 'sourceCodeUrl', 'orderPosition', 'skillIds']);
+  const allowed = new Set(['title', 'slug', 'description', 'thumbnailUrl', 'images', 'demoUrl', 'sourceCodeUrl', 'orderPosition', 'skillIds']);
   if (Object.keys(value).some((key) => !allowed.has(key)) || Object.keys(value).length === 0) return null;
 
   const result: UpdateProjectInput = {};
@@ -70,6 +77,11 @@ function parseUpdateInput(value: unknown): UpdateProjectInput | null {
       if (typeof text !== 'string') return null;
       result[key] = text;
     }
+  }
+  if ('images' in value) {
+    const images = value.images === null ? null : readImages(value.images);
+    if (images === undefined) return null;
+    result.images = images;
   }
   for (const key of ['thumbnailUrl', 'demoUrl', 'sourceCodeUrl'] as const) {
     if (key in value) {
@@ -157,3 +169,6 @@ export function createProjectRoutes(dependencies: {
 
   return routes;
 }
+
+
+

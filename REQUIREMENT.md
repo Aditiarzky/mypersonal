@@ -33,6 +33,7 @@ projects:
 • slug varchar(150) not null Unique
 • description text not null
 • thumbnail_url text null
+• images Json null
 • demo_url text null
 • source_code_url text null
 • order_position integer default 0

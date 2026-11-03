@@ -1,4 +1,4 @@
-﻿# Personal Portfolio
+# Personal Portfolio
 
 Monorepo portfolio dengan SvelteKit di Cloudflare Pages, Hono REST API di Cloudflare Workers, D1 (SQLite), dan Bun workspaces.
 
@@ -119,6 +119,7 @@ Contoh body create:
   "slug": "portfolio-api",
   "description": "REST API untuk portfolio.",
   "thumbnailUrl": null,
+  "images": ["https://example.com/shot-1.png"],
   "demoUrl": "https://example.com",
   "sourceCodeUrl": "https://github.com/example/portfolio",
   "orderPosition": 0,
@@ -185,3 +186,4 @@ Tambahkan migrasi bernomor baru di `apps/api/migrations/`; jangan mengubah migra
 - [Hono cookie helper](https://hono.dev/docs/helpers/cookie)
 - [Hono CORS middleware](https://hono.dev/docs/middleware/builtin/cors)
 - [Cloudflare D1 migrations](https://developers.cloudflare.com/d1/reference/migrations/)
+

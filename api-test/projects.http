@@ -1,13 +1,177 @@
-POST http://localhost:8787/api/auth/login
+@baseUrl = {{API_BASE_URL}}
+@testSuffix = {{new Date().getTime()}}
+@projectSlug = httpyac-project-{{testSuffix}}
+
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{"email":"{{TEST_ADMIN_EMAIL}}","password":"{{TEST_ADMIN_PASSWORD}}"}
+
+{{
+const assert = require('assert');
+test('login before protected project requests', () => assert.strictEqual(response.statusCode, 200));
+}}
+
+###
+
+GET {{baseUrl}}/api/projects
+
+{{
+const assert = require('assert');
+test('list projects', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.success, true);
+  assert.ok(Array.isArray(response.parsedBody.data));
+});
+}}
+
+###
+
+POST {{baseUrl}}/api/skills
+Content-Type: application/json
+
+{"name":"Project test skill {{testSuffix}}","category":"Test","iconUrl":null}
+
+{{
+const assert = require('assert');
+test('create skill fixture for project relation', () => {
+  assert.strictEqual(response.statusCode, 201);
+  $global.testSkillId = response.parsedBody.data.id;
+});
+}}
+
+###
+
+POST {{baseUrl}}/api/projects
 Content-Type: application/json
 
 {
-  "title": "Portfolio API",
-  "slug": "portfolio-api",
-  "description": "REST API untuk portfolio.",
+  "title": "HTTPyac Project {{testSuffix}}",
+  "slug": "{{projectSlug}}",
+  "description": "Project CRUD API test fixture.",
   "thumbnailUrl": null,
-  "demoUrl": "https://example.com",
-  "sourceCodeUrl": "https://github.com/example/portfolio",
-  "orderPosition": 0,
-  "skillIds": [1, 2]
+  "images": ["https://example.com/test-image.png"],
+  "demoUrl": null,
+  "sourceCodeUrl": null,
+  "orderPosition": 999,
+  "skillIds": []
 }
+
+{{
+const assert = require('assert');
+test('create project with images', () => {
+  assert.strictEqual(response.statusCode, 201);
+  assert.strictEqual(response.parsedBody.success, true);
+  assert.deepStrictEqual(response.parsedBody.data.images, ['https://example.com/test-image.png']);
+  $global.testProjectId = response.parsedBody.data.id;
+});
+}}
+
+###
+
+GET {{baseUrl}}/api/projects/{{projectSlug}}
+
+{{
+const assert = require('assert');
+test('get project by slug', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.data.id, $global.testProjectId);
+});
+}}
+
+###
+
+PATCH {{baseUrl}}/api/projects/{{$global.testProjectId}}
+Content-Type: application/json
+
+{"description":"Updated by HTTPyac.","images":[]}
+
+{{
+const assert = require('assert');
+test('update project and clear images', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.data.description, 'Updated by HTTPyac.');
+  assert.deepStrictEqual(response.parsedBody.data.images, []);
+});
+}}
+
+###
+
+GET {{baseUrl}}/api/projects/{{$global.testProjectId}}/skills
+
+{{
+const assert = require('assert');
+test('list project skill relations', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.deepStrictEqual(response.parsedBody.data, []);
+});
+}}
+
+###
+
+POST {{baseUrl}}/api/projects/{{$global.testProjectId}}/skills
+Content-Type: application/json
+
+{"skillId":{{$global.testSkillId}}}
+
+{{
+const assert = require('assert');
+test('attach skill to project', () => {
+  assert.strictEqual(response.statusCode, 201);
+  assert.strictEqual(response.parsedBody.data.id, $global.testSkillId);
+});
+}}
+
+###
+
+GET {{baseUrl}}/api/projects/{{$global.testProjectId}}/skills
+
+{{
+const assert = require('assert');
+test('project now includes linked skill', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.data.length, 1);
+});
+}}
+
+###
+
+POST {{baseUrl}}/api/projects/{{$global.testProjectId}}/skills
+Content-Type: application/json
+
+{"skillId":{{$global.testSkillId}}}
+
+{{
+const assert = require('assert');
+test('duplicate project skill relation is rejected', () => {
+  assert.strictEqual(response.statusCode, 409);
+  assert.strictEqual(response.parsedBody.error, 'project_skill_conflict');
+});
+}}
+
+###
+
+DELETE {{baseUrl}}/api/projects/{{$global.testProjectId}}/skills/{{$global.testSkillId}}
+
+{{
+const assert = require('assert');
+test('detach skill from project', () => assert.strictEqual(response.statusCode, 204));
+}}
+
+###
+
+DELETE {{baseUrl}}/api/projects/{{$global.testProjectId}}
+
+{{
+const assert = require('assert');
+test('delete project', () => assert.strictEqual(response.statusCode, 204));
+}}
+
+###
+
+DELETE {{baseUrl}}/api/skills/{{$global.testSkillId}}
+
+{{
+const assert = require('assert');
+test('delete project test skill fixture', () => assert.strictEqual(response.statusCode, 204));
+}}

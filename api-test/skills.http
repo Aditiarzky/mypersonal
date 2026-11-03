@@ -1,0 +1,89 @@
+@baseUrl = {{API_BASE_URL}}
+@testSuffix = {{new Date().getTime()}}
+
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{"email":"{{TEST_ADMIN_EMAIL}}","password":"{{TEST_ADMIN_PASSWORD}}"}
+
+{{
+const assert = require('assert');
+test('login before protected skill requests', () => assert.strictEqual(response.statusCode, 200));
+}}
+
+###
+
+GET {{baseUrl}}/api/skills
+
+{{
+const assert = require('assert');
+test('list skills', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.success, true);
+  assert.ok(Array.isArray(response.parsedBody.data));
+});
+}}
+
+###
+
+POST {{baseUrl}}/api/skills
+Content-Type: application/json
+
+{"name":"HTTPyac skill {{testSuffix}}","category":"Test","iconUrl":"https://example.com/icon.svg"}
+
+{{
+const assert = require('assert');
+test('create skill', () => {
+  assert.strictEqual(response.statusCode, 201);
+  assert.strictEqual(response.parsedBody.success, true);
+  $global.skillId = response.parsedBody.data.id;
+});
+}}
+
+###
+
+GET {{baseUrl}}/api/skills/{{$global.skillId}}
+
+{{
+const assert = require('assert');
+test('get skill by id', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.data.id, $global.skillId);
+});
+}}
+
+###
+
+PATCH {{baseUrl}}/api/skills/{{$global.skillId}}
+Content-Type: application/json
+
+{"category":"Updated test"}
+
+{{
+const assert = require('assert');
+test('update skill', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.data.category, 'Updated test');
+});
+}}
+
+###
+
+DELETE {{baseUrl}}/api/skills/{{$global.skillId}}
+
+{{
+const assert = require('assert');
+test('delete skill', () => assert.strictEqual(response.statusCode, 204));
+}}
+
+###
+
+GET {{baseUrl}}/api/skills/{{$global.skillId}}
+
+{{
+const assert = require('assert');
+test('deleted skill returns not found', () => {
+  assert.strictEqual(response.statusCode, 404);
+  assert.strictEqual(response.parsedBody.error, 'skill_not_found');
+});
+}}

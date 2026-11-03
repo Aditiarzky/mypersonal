@@ -1,0 +1,115 @@
+@baseUrl = {{API_BASE_URL}}
+@testSuffix = {{new Date().getTime()}}
+
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{"email":"{{TEST_ADMIN_EMAIL}}","password":"{{TEST_ADMIN_PASSWORD}}"}
+
+{{
+const assert = require('assert');
+test('login before protected social link requests', () => assert.strictEqual(response.statusCode, 200));
+}}
+
+###
+
+POST {{baseUrl}}/api/profiles
+Content-Type: application/json
+
+{
+  "userId": {{TEST_USER_ID}},
+  "title": "HTTPyac social profile {{testSuffix}}",
+  "bio": "Temporary fixture for social link tests."
+}
+
+{{
+const assert = require('assert');
+test('create profile fixture', () => {
+  assert.strictEqual(response.statusCode, 201);
+  $global.testProfileId = response.parsedBody.data.id;
+});
+}}
+
+###
+
+GET {{baseUrl}}/api/social-links
+
+{{
+const assert = require('assert');
+test('list social links', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.ok(Array.isArray(response.parsedBody.data));
+});
+}}
+
+###
+
+POST {{baseUrl}}/api/social-links
+Content-Type: application/json
+
+{"profileId":{{$global.testProfileId}},"platform":"GitHub","url":"https://github.com/example"}
+
+{{
+const assert = require('assert');
+test('create social link', () => {
+  assert.strictEqual(response.statusCode, 201);
+  $global.testSocialLinkId = response.parsedBody.data.id;
+});
+}}
+
+###
+
+GET {{baseUrl}}/api/social-links/{{$global.testSocialLinkId}}
+
+{{
+const assert = require('assert');
+test('get social link by id', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.data.profileId, $global.testProfileId);
+});
+}}
+
+###
+
+PATCH {{baseUrl}}/api/social-links/{{$global.testSocialLinkId}}
+Content-Type: application/json
+
+{"platform":"GitHub test"}
+
+{{
+const assert = require('assert');
+test('update social link', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.data.platform, 'GitHub test');
+});
+}}
+
+###
+
+GET {{baseUrl}}/api/profiles/{{$global.testProfileId}}
+
+{{
+const assert = require('assert');
+test('profile response embeds its social links', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.data.socialLinks.length, 1);
+});
+}}
+
+###
+
+DELETE {{baseUrl}}/api/social-links/{{$global.testSocialLinkId}}
+
+{{
+const assert = require('assert');
+test('delete social link', () => assert.strictEqual(response.statusCode, 204));
+}}
+
+###
+
+DELETE {{baseUrl}}/api/profiles/{{$global.testProfileId}}
+
+{{
+const assert = require('assert');
+test('delete profile fixture', () => assert.strictEqual(response.statusCode, 204));
+}}

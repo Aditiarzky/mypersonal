@@ -8,6 +8,7 @@ type ProjectJoinRow = {
   slug: string;
   description: string;
   thumbnailUrl: string | null;
+  images: string | null;
   demoUrl: string | null;
   sourceCodeUrl: string | null;
   orderPosition: number | null;
@@ -29,6 +30,7 @@ function mapProjects(rows: ProjectJoinRow[]): Project[] {
         slug: row.slug,
         description: row.description,
         thumbnailUrl: row.thumbnailUrl,
+        images: row.images === null ? null : JSON.parse(row.images) as string[],
         demoUrl: row.demoUrl,
         sourceCodeUrl: row.sourceCodeUrl,
         orderPosition: row.orderPosition ?? 0,
@@ -52,6 +54,7 @@ function mapProjects(rows: ProjectJoinRow[]): Project[] {
 const PROJECT_SELECT = `
   SELECT p.id, p.title, p.slug, p.description,
          p.thumbnail_url AS thumbnailUrl,
+         p.images AS images,
          p.demo_url AS demoUrl,
          p.source_code_url AS sourceCodeUrl,
          p.order_position AS orderPosition,
@@ -94,8 +97,8 @@ export class D1ProjectRepository implements ProjectRepository {
     const inserted = await this.database
       .prepare(
         `INSERT INTO projects
-          (title, slug, description, thumbnail_url, demo_url, source_code_url, order_position)
-         VALUES (?, ?, ?, ?, ?, ?, ?)
+          (title, slug, description, thumbnail_url, images, demo_url, source_code_url, order_position)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
          RETURNING id`
       )
       .bind(
@@ -103,6 +106,7 @@ export class D1ProjectRepository implements ProjectRepository {
         input.slug,
         input.description,
         input.thumbnailUrl,
+        input.images === null ? null : JSON.stringify(input.images),
         input.demoUrl,
         input.sourceCodeUrl,
         input.orderPosition
@@ -136,6 +140,7 @@ export class D1ProjectRepository implements ProjectRepository {
       ['slug', 'slug'],
       ['description', 'description'],
       ['thumbnailUrl', 'thumbnail_url'],
+      ['images', 'images'],
       ['demoUrl', 'demo_url'],
       ['sourceCodeUrl', 'source_code_url'],
       ['orderPosition', 'order_position']
@@ -143,7 +148,7 @@ export class D1ProjectRepository implements ProjectRepository {
     for (const [key, column] of fields) {
       if (Object.hasOwn(input, key)) {
         updates.push(`${column} = ?`);
-        values.push(input[key] as string | number | null);
+        values.push(key === 'images' ? (input.images === null || input.images === undefined ? null : JSON.stringify(input.images)) : input[key] as string | number | null);
       }
     }
 
@@ -205,3 +210,6 @@ export class D1ProjectRepository implements ProjectRepository {
     await this.database.batch(statements);
   }
 }
+
+
+

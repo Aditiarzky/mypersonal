@@ -1,0 +1,98 @@
+@baseUrl = {{API_BASE_URL}}
+@testSuffix = {{new Date().getTime()}}
+
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{"email":"{{TEST_ADMIN_EMAIL}}","password":"{{TEST_ADMIN_PASSWORD}}"}
+
+{{
+const assert = require('assert');
+test('login before protected profile requests', () => assert.strictEqual(response.statusCode, 200));
+}}
+
+###
+
+GET {{baseUrl}}/api/profiles
+
+{{
+const assert = require('assert');
+test('list profiles', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.success, true);
+  assert.ok(Array.isArray(response.parsedBody.data));
+});
+}}
+
+###
+
+POST {{baseUrl}}/api/profiles
+Content-Type: application/json
+
+{
+  "userId": {{TEST_USER_ID}},
+  "title": "HTTPyac profile {{testSuffix}}",
+  "bio": "Temporary profile fixture.",
+  "avatarUrl": null,
+  "cvUrl": null,
+  "location": "Jakarta"
+}
+
+{{
+const assert = require('assert');
+test('create profile for configured user', () => {
+  assert.strictEqual(response.statusCode, 201);
+  assert.strictEqual(response.parsedBody.success, true);
+  assert.ok(Array.isArray(response.parsedBody.data.socialLinks));
+  $global.testProfileId = response.parsedBody.data.id;
+});
+}}
+
+###
+
+GET {{baseUrl}}/api/profiles/{{$global.testProfileId}}
+
+{{
+const assert = require('assert');
+test('get profile by id', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.data.id, $global.testProfileId);
+});
+}}
+
+###
+
+PATCH {{baseUrl}}/api/profiles/{{$global.testProfileId}}
+Content-Type: application/json
+
+{"title":"Updated HTTPyac profile","location":null}
+
+{{
+const assert = require('assert');
+test('update profile fields', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.data.title, 'Updated HTTPyac profile');
+  assert.strictEqual(response.parsedBody.data.location, null);
+});
+}}
+
+###
+
+DELETE {{baseUrl}}/api/profiles/{{$global.testProfileId}}
+
+{{
+const assert = require('assert');
+test('delete profile fixture', () => assert.strictEqual(response.statusCode, 204));
+}}
+
+###
+
+GET {{baseUrl}}/api/profiles/{{$global.testProfileId}}
+
+{{
+const assert = require('assert');
+test('deleted profile returns not found', () => {
+  assert.strictEqual(response.statusCode, 404);
+  assert.strictEqual(response.parsedBody.error, 'profile_not_found');
+});
+}}

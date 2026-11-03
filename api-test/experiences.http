@@ -1,0 +1,111 @@
+@baseUrl = {{API_BASE_URL}}
+@testSuffix = {{new Date().getTime()}}
+
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{"email":"{{TEST_ADMIN_EMAIL}}","password":"{{TEST_ADMIN_PASSWORD}}"}
+
+{{
+const assert = require('assert');
+test('login before protected experience requests', () => assert.strictEqual(response.statusCode, 200));
+}}
+
+###
+
+GET {{baseUrl}}/api/experiences
+
+{{
+const assert = require('assert');
+test('list experiences', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.success, true);
+  assert.ok(Array.isArray(response.parsedBody.data));
+});
+}}
+
+###
+
+POST {{baseUrl}}/api/experiences
+Content-Type: application/json
+
+{
+  "companyName": "HTTPyac Company {{testSuffix}}",
+  "role": "Test Engineer",
+  "startDate": "2024-01-01",
+  "endDate": null,
+  "description": "Temporary experience fixture."
+}
+
+{{
+const assert = require('assert');
+test('create experience', () => {
+  assert.strictEqual(response.statusCode, 201);
+  assert.strictEqual(response.parsedBody.success, true);
+  $global.testExperienceId = response.parsedBody.data.id;
+});
+}}
+
+###
+
+GET {{baseUrl}}/api/experiences/{{$global.testExperienceId}}
+
+{{
+const assert = require('assert');
+test('get experience by id', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.data.id, $global.testExperienceId);
+});
+}}
+
+###
+
+PATCH {{baseUrl}}/api/experiences/{{$global.testExperienceId}}
+Content-Type: application/json
+
+{"role":"Updated test role","endDate":"2025-01-01"}
+
+{{
+const assert = require('assert');
+test('update experience', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.data.role, 'Updated test role');
+  assert.strictEqual(response.parsedBody.data.endDate, '2025-01-01');
+});
+}}
+
+###
+
+PATCH {{baseUrl}}/api/experiences/{{$global.testExperienceId}}
+Content-Type: application/json
+
+{"endDate":"2023-12-31"}
+
+{{
+const assert = require('assert');
+test('reject end date before start date', () => {
+  assert.strictEqual(response.statusCode, 400);
+  assert.strictEqual(response.parsedBody.error, 'invalid_request');
+});
+}}
+
+###
+
+DELETE {{baseUrl}}/api/experiences/{{$global.testExperienceId}}
+
+{{
+const assert = require('assert');
+test('delete experience', () => assert.strictEqual(response.statusCode, 204));
+}}
+
+###
+
+GET {{baseUrl}}/api/experiences/{{$global.testExperienceId}}
+
+{{
+const assert = require('assert');
+test('deleted experience returns not found', () => {
+  assert.strictEqual(response.statusCode, 404);
+  assert.strictEqual(response.parsedBody.error, 'experience_not_found');
+});
+}}

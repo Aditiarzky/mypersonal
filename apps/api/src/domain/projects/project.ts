@@ -11,6 +11,7 @@ export interface Project {
   slug: string;
   description: string;
   thumbnailUrl: string | null;
+  images: string[] | null;
   demoUrl: string | null;
   sourceCodeUrl: string | null;
   orderPosition: number;
@@ -23,6 +24,7 @@ export interface CreateProjectInput {
   slug: string;
   description: string;
   thumbnailUrl: string | null;
+  images: string[] | null;
   demoUrl: string | null;
   sourceCodeUrl: string | null;
   orderPosition: number;
@@ -32,3 +34,5 @@ export interface CreateProjectInput {
 export type UpdateProjectInput = Partial<Omit<CreateProjectInput, 'skillIds'>> & {
   skillIds?: number[];
 };
+
+

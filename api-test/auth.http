@@ -1,7 +1,55 @@
-POST http://localhost:8787/api/auth/login
+@baseUrl = {{API_BASE_URL}}
+
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "akusudahpunya7@gmail.com",
-  "password": "%Indonesi4"
+  "email": "{{TEST_ADMIN_EMAIL}}",
+  "password": "{{TEST_ADMIN_PASSWORD}}"
 }
+
+{{
+const assert = require('assert');
+test('login succeeds and returns standard envelope', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.success, true);
+  assert.ok(response.parsedBody.data.user.id);
+});
+}}
+
+###
+
+GET {{baseUrl}}/api/auth/session
+
+{{
+const assert = require('assert');
+test('session endpoint returns logged-in user', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.success, true);
+  assert.ok(response.parsedBody.data.user.email);
+});
+}}
+
+###
+
+POST {{baseUrl}}/api/auth/logout
+
+{{
+const assert = require('assert');
+test('logout clears session', () => {
+  assert.strictEqual(response.statusCode, 200);
+  assert.strictEqual(response.parsedBody.data.loggedOut, true);
+});
+}}
+
+###
+
+GET {{baseUrl}}/api/auth/session
+
+{{
+const assert = require('assert');
+test('session endpoint rejects logged-out client', () => {
+  assert.strictEqual(response.statusCode, 401);
+  assert.strictEqual(response.parsedBody.success, false);
+});
+}}
