@@ -45,6 +45,15 @@
   let currentProfile = $derived(
     profiles.find((profile) => profile.userId === currentUserId) ?? null,
   );
+
+  function formatExperienceMonth(value: string) {
+    const [year, month] = value.split("-").map(Number);
+    if (!year || !month) return value;
+    return new Intl.DateTimeFormat("id-ID", {
+      month: "long",
+      year: "numeric",
+    }).format(new Date(year, month - 1, 1));
+  }
 </script>
 
 <!-- Grid view: responsive cards keep the active section's records easy to scan. -->
@@ -364,7 +373,10 @@
             {experience.companyName}
           </p>
           <p class="mt-3 text-xs text-slate-500">
-            {experience.startDate} — {experience.endDate ?? "Sekarang"}
+            {formatExperienceMonth(experience.startDate)} —
+            {experience.endDate
+              ? ` ${formatExperienceMonth(experience.endDate)}`
+              : " Sekarang"}
           </p>
           {#if experience.skills.length}
             <div class="mt-3 flex flex-wrap gap-1.5">

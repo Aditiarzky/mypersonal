@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getLocalTimeZone, today } from "@internationalized/date";
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import { ChevronLeftIcon } from "@lucide/svelte";
@@ -87,7 +88,7 @@
   let experienceForm = $state<ExperienceFormData>({
     companyName: "",
     role: "",
-    startDate: new Date().toISOString().slice(0, 10),
+    startDate: today(getLocalTimeZone()).set({ day: 1 }).toString(),
     endDate: "",
     description: "",
     skillIds: [],
@@ -154,7 +155,7 @@
     experienceForm = {
       companyName: "",
       role: "",
-      startDate: new Date().toISOString().slice(0, 10),
+      startDate: today(getLocalTimeZone()).set({ day: 1 }).toString(),
       endDate: "",
       description: "",
       skillIds: [],
@@ -234,8 +235,10 @@
     experienceForm = {
       companyName: experience.companyName,
       role: experience.role,
-      startDate: experience.startDate,
-      endDate: experience.endDate ?? "",
+      startDate: `${experience.startDate.slice(0, 7)}-01`,
+      endDate: experience.endDate
+        ? `${experience.endDate.slice(0, 7)}-01`
+        : "",
       description: experience.description ?? "",
       skillIds: experience.skills.map((skill) => skill.id),
     };
@@ -250,6 +253,18 @@
   async function submitForm(event: SubmitEvent) {
     event.preventDefault();
     if (busy) return;
+    if (activeSection === "experiences" && !experienceForm.startDate.trim()) {
+      error = "Bulan dan tahun mulai wajib dipilih.";
+      return;
+    }
+    if (
+      activeSection === "experiences" &&
+      experienceForm.endDate &&
+      experienceForm.endDate < experienceForm.startDate
+    ) {
+      error = "Periode selesai tidak boleh sebelum periode mulai.";
+      return;
+    }
     busy = true;
     error = null;
     try {

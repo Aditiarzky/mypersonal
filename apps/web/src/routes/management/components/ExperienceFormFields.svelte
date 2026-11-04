@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Skill } from "../../../lib/types/api";
   import type { ExperienceFormData } from "../management.types";
+  import ExperienceDateRangeField from "./ExperienceDateRangeField.svelte";
 
   interface Props {
     form: ExperienceFormData;
@@ -28,21 +29,10 @@
       class="management-input mt-1.5"
     /></label
   >
-  <label class="text-sm font-medium text-slate-700"
-    >Tanggal mulai<input
-      required
-      type="date"
-      bind:value={form.startDate}
-      class="management-input mt-1.5"
-    /></label
-  >
-  <label class="text-sm font-medium text-slate-700"
-    >Tanggal selesai (opsional)<input
-      type="date"
-      bind:value={form.endDate}
-      class="management-input mt-1.5"
-    /></label
-  >
+  <ExperienceDateRangeField
+    bind:startDate={form.startDate}
+    bind:endDate={form.endDate}
+  />
   <label class="text-sm font-medium text-slate-700 sm:col-span-2"
     >Deskripsi<textarea
       rows="3"
