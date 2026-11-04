@@ -1,5 +1,8 @@
 <script lang="ts">
-  import { getSkillCategories, type SkillCategory } from '../utils/skill-categories';
+  import {
+    getSkillCategories,
+    type SkillCategory,
+  } from "../utils/skill-categories";
 
   interface Props {
     value?: string;
@@ -8,7 +11,12 @@
     required?: boolean;
   }
 
-  const { value = '', onChange, className = '', required = false }: Props = $props();
+  const {
+    value = "",
+    onChange,
+    className = "",
+    required = false,
+  }: Props = $props();
 
   const categories = getSkillCategories();
 

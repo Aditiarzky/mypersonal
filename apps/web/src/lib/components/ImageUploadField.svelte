@@ -100,7 +100,8 @@
         bind:value
         onpaste={handlePaste}
         class="management-input mt-1.5"
-        placeholder="URL gambar, satu per baris atau paste gambar di sini"></textarea>{:else}<input
+        placeholder="URL gambar, satu per baris atau paste gambar di sini"
+      ></textarea>{:else}<input
         type="url"
         bind:value
         onpaste={handlePaste}
