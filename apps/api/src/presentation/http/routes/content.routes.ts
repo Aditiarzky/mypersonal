@@ -129,13 +129,10 @@ export function createContentRoutes(dependencies: {
   routes.patch('/blogs/:id', requireSession, (c) => update(c, 'blogs'));
   routes.delete('/blogs/:id', requireSession, (c) => remove(c, 'blogs'));
 
-  routes.post('/inbox-messages', (c) => create(c, 'inbox_messages'));
   routes.get('/inbox-messages', requireSession, (c) => list(c, 'inbox_messages'));
   routes.get('/inbox-messages/:id', requireSession, (c) => get(c, 'inbox_messages'));
   routes.patch('/inbox-messages/:id', requireSession, (c) => update(c, 'inbox_messages'));
   routes.delete('/inbox-messages/:id', requireSession, (c) => remove(c, 'inbox_messages'));
   return routes;
 }
-
-
 

@@ -144,6 +144,10 @@ Payload create:
 
 `userId` harus merujuk ke user yang ada dan hanya boleh dipakai satu profile. `name` dan `title` masing-masing menerima 1–100 karakter. User tidak ditemukan menghasilkan `404 user_not_found`; `userId` duplikat menghasilkan `409 profile_user_conflict`. `avatarUrl` dan `cvUrl` menerima `null` atau URL HTTP/HTTPS; `location` nullable. Setiap item respons profile menyertakan `socialLinks`, yang berisi data dari endpoint `/api/social-links`. Migrasi mengisi `name` profile lama dari nama user terkait.
 
+## Form kontak
+
+Form kontak frontend menggunakan skema `mailto:` dan tidak memanggil API email. Saat pengunjung menekan tombol kirim, aplikasi email perangkat dibuka dengan penerima `aditiarizkyutama@gmail.com`, subjek, nama, email balasan, dan isi pesan yang sudah diisi. Pengunjung perlu meninjau lalu menekan tombol kirim di aplikasi emailnya; situs tidak dapat memastikan email benar-benar dikirim. Fitur ini tidak memerlukan provider email, API key, atau endpoint backend.
+
 ## Social links CRUD
 
 `/api/social-links` mengelola baris tabel `social_links`. GET bersifat publik; POST, PATCH, dan DELETE memerlukan sesi yang valid.

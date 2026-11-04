@@ -85,11 +85,11 @@ bunx wrangler pages dev apps/web/.svelte-kit/cloudflare
 
 Endpoint awal:
 
-| Method | Path | Fungsi |
-| --- | --- | --- |
-| `POST` | `/api/auth/login` | Memeriksa email/password, lalu mengatur cookie sesi HttpOnly |
-| `GET` | `/api/auth/session` | Mengembalikan user untuk sesi yang valid |
-| `POST` | `/api/auth/logout` | Menghapus cookie sesi |
+| Method | Path                | Fungsi                                                       |
+| ------ | ------------------- | ------------------------------------------------------------ |
+| `POST` | `/api/auth/login`   | Memeriksa email/password, lalu mengatur cookie sesi HttpOnly |
+| `GET`  | `/api/auth/session` | Mengembalikan user untuk sesi yang valid                     |
+| `POST` | `/api/auth/logout`  | Menghapus cookie sesi                                        |
 
 Dokumentasi lengkap request, respons, autentikasi, dan error tersedia di [`docs/API.md`](docs/API.md). Perbarui dokumen tersebut setiap kali endpoint ditambah, diubah, atau dihapus.
 
@@ -103,13 +103,13 @@ Saat ini tidak ada endpoint registrasi. Admin dibuat melalui seed. Skema belum m
 
 Route proyek dipasang pada `/api/projects`. Relasi `skills` dikirim sebagai `skillIds`; respons menyertakan array `skills` lengkap. `GET` bersifat publik. `POST`, `PATCH`, dan `DELETE` memerlukan cookie sesi yang valid.
 
-| Method | Path | Fungsi |
-| --- | --- | --- |
-| `GET` | `/api/projects` | Daftar proyek beserta skills, urut `orderPosition` lalu tanggal terbaru |
-| `GET` | `/api/projects/:slug` | Detail proyek beserta skills |
-| `POST` | `/api/projects` | Buat proyek dan relasi skills |
-| `PATCH` | `/api/projects/:id` | Perbarui field proyek dan/atau ganti `skillIds` |
-| `DELETE` | `/api/projects/:id` | Hapus relasi project-skills lalu proyek |
+| Method   | Path                  | Fungsi                                                                  |
+| -------- | --------------------- | ----------------------------------------------------------------------- |
+| `GET`    | `/api/projects`       | Daftar proyek beserta skills, urut `orderPosition` lalu tanggal terbaru |
+| `GET`    | `/api/projects/:slug` | Detail proyek beserta skills                                            |
+| `POST`   | `/api/projects`       | Buat proyek dan relasi skills                                           |
+| `PATCH`  | `/api/projects/:id`   | Perbarui field proyek dan/atau ganti `skillIds`                         |
+| `DELETE` | `/api/projects/:id`   | Hapus relasi project-skills lalu proyek                                 |
 
 Contoh body create:
 
@@ -128,6 +128,7 @@ Contoh body create:
 ```
 
 Untuk menghapus relasi skills saat update, kirim `"skillIds": []`. Jika `skillIds` tidak disertakan dalam PATCH, relasi saat ini dipertahankan. ID skill yang tidak ada menghasilkan `400`; slug duplikat menghasilkan `409`. Karena skema belum memiliki role, otorisasi CRUD saat ini memeriksa sesi login saja, bukan role admin.
+
 ## Migrasi dan seed D1
 
 Binding D1 bernama `portfoliod1`, dikonfigurasi di `apps/api/wrangler.jsonc`. Migrasi skema berada di `apps/api/migrations/`.
@@ -146,6 +147,24 @@ bun run seed:admin:remote
 ```
 
 Seed remote membaca kredensial dari `.env` lokal, membuat SQL sementara di folder `.wrangler`, menjalankannya dengan Wrangler, lalu menghapus file sementara. Perintah migrasi dan seed remote mengubah data/schema Cloudflare; pastikan akun dan targetnya benar sebelum menjalankan.
+
+## sync data lokal ke production
+
+# 1. Backup production terlebih dahulu
+
+bunx wrangler d1 export portfoliod1 --remote --output .\production-backup.sql --config .\apps\api\wrangler.jsonc
+
+# 2. Pastikan skema production sudah mengikuti migrasi terbaru
+
+bun run --filter api db:migrate:remote
+
+# 3. Ekspor data lokal saja, tanpa skema
+
+bunx wrangler d1 export portfoliod1 --local --no-schema --output .\local-data.sql --config .\apps\api\wrangler.jsonc
+
+# 4. Masukkan data ke production
+
+bunx wrangler d1 execute portfoliod1 --remote --file .\local-data.sql --config .\apps\api\wrangler.jsonc
 
 ## Pemeriksaan dan deployment
 
@@ -186,4 +205,3 @@ Tambahkan migrasi bernomor baru di `apps/api/migrations/`; jangan mengubah migra
 - [Hono cookie helper](https://hono.dev/docs/helpers/cookie)
 - [Hono CORS middleware](https://hono.dev/docs/middleware/builtin/cors)
 - [Cloudflare D1 migrations](https://developers.cloudflare.com/d1/reference/migrations/)
-

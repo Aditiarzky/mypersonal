@@ -42,7 +42,6 @@ const projectSkillsFor = (c: Context<AppEnv>) =>
   new ProjectSkillService(new D1ProjectSkillRepository(c.env.portfoliod1));
 const experiencesFor = (c: Context<AppEnv>) =>
   new ExperienceService(new D1ExperienceRepository(c.env.portfoliod1));
-
 app.onError((err, c) => {
   console.error('API request failed:', err);
   return errorResponse(c, 'internal_server_error', 500);
@@ -87,9 +86,6 @@ app.route('/api/profiles', createProfileRoutes({ profilesFor, usersFor }));
 app.route('/api/social-links', createSocialLinkRoutes({ linksFor, usersFor }));
 app.route('/api/projects', createProjectSkillRoutes({ projectSkillsFor, usersFor }));
 app.route('/api/experiences', createExperienceRoutes({ experiencesFor, usersFor }));
-
 app.notFound((c) => errorResponse(c, 'not_found', 404));
 
 export default app;
-
-
