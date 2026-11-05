@@ -257,7 +257,7 @@
     {profile}
     {firstName}
     {loading}
-    translateText={translateText}
+    {translateText}
     onThemeChange={(nextTheme) => (theme = nextTheme)}
   />
   <AboutSection
@@ -266,26 +266,26 @@
     {socialLinks}
     {firstName}
     {loading}
-    translateText={translateText}
+    {translateText}
   />
   <ProjectsSection
     copy={ui}
     projects={sortedProjects}
     {loading}
-    translateText={translateText}
+    {translateText}
   />
   <SkillsSection
     copy={ui}
     groups={skillGroups}
     {loading}
     otherKey={OTHER_KEY}
-    translateText={translateText}
+    {translateText}
   />
   <ExperienceSection
     copy={ui}
     {experiences}
     {loading}
-    translateText={translateText}
+    {translateText}
     {formatMonth}
   />
   <ContactSection
@@ -302,7 +302,7 @@
     {firstName}
     {navLinks}
     {socialLinks}
-    translateText={translateText}
+    {translateText}
     {year}
   />
 </main>

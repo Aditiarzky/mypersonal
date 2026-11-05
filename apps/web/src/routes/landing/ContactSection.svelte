@@ -21,11 +21,11 @@
 </script>
 
 <section id="contact" class="mx-auto max-w-6xl scroll-mt-24 px-6 py-24">
-  <div class="grid gap-4 md:grid-cols-2">
+  <div class="grid gap-4 grid-cols-1 md:grid-cols-2">
     <div class="panel flex flex-col rounded-[2rem] p-8 md:p-12">
       <p class="text-sm font-medium opacity-80">✦ {copy.contactKicker}</p>
       <h2
-        class="font-dmsans mt-6 text-6xl font-bold tracking-tight md:text-7xl"
+        class="font-dmsans mt-6 text-4xl font-bold tracking-tight md:text-7xl"
       >
         {copy.sayHello}
       </h2>
@@ -78,8 +78,7 @@
           class="field min-h-36 resize-y"
           name="message"
           required
-          bind:value={form.message}
-        ></textarea>
+          bind:value={form.message}></textarea>
       </label>
 
       <div class="mt-2 flex flex-wrap items-center gap-4">

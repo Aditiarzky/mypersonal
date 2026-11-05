@@ -38,7 +38,7 @@
   }}
 />
 
-<header bind:this={headerEl} class="fixed inset-x-0 top-4 z-50 px-4">
+<header bind:this={headerEl} class="fixed inset-x-0 top-4 z-50 px-4 w-screen">
   <div class="relative mx-auto max-w-3xl">
     <nav
       aria-label="Main"

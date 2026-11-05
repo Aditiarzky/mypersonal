@@ -56,10 +56,43 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/*
+  FIX MOBILE: cegah scroll/lebar horizontal.
+  - `overflow-x: clip` dipasang di html DAN body (bukan hidden) supaya
+    elemen sticky/fixed (header) tidak rusak dan browser mobile tidak
+    melebarkan layout viewport gara-gara elemen yang meluber (mis. glow hero).
+  - 100svh menggantikan 100vh agar tidak lompat saat address bar mobile muncul/hilang.
+*/
+html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 body {
-  min-width: 320px;
+  width: 100%;
+  max-width: 100%;
   min-height: 100vh;
+  min-height: 100svh;
   margin: 0;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Pembungkus landing page: potong apa pun yang keluar dari lebar layar */
+main.page {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Media (foto/gambar/svg) tidak boleh lebih lebar dari container */
+img,
+video,
+svg,
+canvas {
+  max-width: 100%;
 }
 
 button,

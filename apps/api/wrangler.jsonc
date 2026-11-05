@@ -3,12 +3,16 @@
   "name": "portfolio-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-30",
+  "vars": {
+    "COOKIE_SAME_SITE": "None",
+    "FRONTEND_ORIGIN": "https://aditiarizkyutama.pages.dev",
+  },
   "d1_databases": [
     {
       "binding": "portfoliod1",
       "database_name": "portfoliod1",
       "database_id": "8e19ea35-68e2-438e-b2a3-93bef6e0968d",
-      "migrations_dir": "migrations"
-    }
-  ]
+      "migrations_dir": "migrations",
+    },
+  ],
 }

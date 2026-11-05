@@ -1,7 +1,8 @@
 import type { PasswordHasher } from '../../domain/auth/password-hasher';
 
 const HASH_PREFIX = 'pbkdf2';
-const ITERATIONS = 600_000;
+// Cloudflare Workers Web Crypto rejects PBKDF2 iteration counts above 100,000.
+const ITERATIONS = 100_000;
 const SALT_BYTES = 16;
 const DERIVED_KEY_BITS = 128;
 const DERIVED_KEY_BYTES = DERIVED_KEY_BITS / 8;

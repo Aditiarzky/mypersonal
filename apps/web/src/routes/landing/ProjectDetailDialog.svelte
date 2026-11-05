@@ -29,6 +29,8 @@
 
   let dialog: HTMLDialogElement;
   let activeImageIndex = $state(0);
+  let sheetOpen = $state(false);
+  let sheetClosing = $state(false);
   // Awalnya light, karena proyek berada di bawah hero (area light).
   // Nilai sebenarnya dibaca dari halaman di onMount.
   let resolvedTheme = $state<"dark" | "light">(theme ?? "light");
@@ -85,6 +87,31 @@
       .join("");
   }
 
+  function closeDialog() {
+    if (!dialog.open || sheetClosing) return;
+    sheetClosing = true;
+
+    if (
+      !window.matchMedia("(max-width: 767px)").matches ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      dialog.close();
+      return;
+    }
+
+    const finishClose = (event: TransitionEvent) => {
+      if (event.target !== dialog || event.propertyName !== "transform") return;
+      dialog.removeEventListener("transitionend", finishClose);
+      dialog.close();
+    };
+
+    dialog.addEventListener("transitionend", finishClose);
+    window.setTimeout(() => {
+      dialog.removeEventListener("transitionend", finishClose);
+      if (dialog.open) dialog.close();
+    }, 350);
+  }
+
   onMount(() => {
     // Ikuti tema halaman yang sedang aktif. Scroll dikunci selama dialog
     // terbuka, jadi tema tidak akan berubah di tengah jalan.
@@ -99,6 +126,9 @@
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     dialog.showModal();
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => (sheetOpen = true));
+    });
     return () => {
       document.body.style.overflow = previousOverflow;
       if (dialog.open) dialog.close();
@@ -109,11 +139,17 @@
 <dialog
   bind:this={dialog}
   class="project-dialog page w-[min(64rem,calc(100%-2rem))] max-w-none overflow-hidden rounded-3xl p-0 backdrop:bg-black/70"
+  class:sheet-open={sheetOpen}
+  class:sheet-closing={sheetClosing}
   data-theme={resolvedTheme}
   aria-label={`${copy.projectDetails}: ${title}`}
   onclose={onClose}
+  oncancel={(event) => {
+    event.preventDefault();
+    closeDialog();
+  }}
   onclick={(event) => {
-    if (event.target === dialog) dialog.close();
+    if (event.target === dialog) closeDialog();
   }}
 >
   <div class="relative max-h-[90dvh] overflow-y-auto">
@@ -121,7 +157,7 @@
       type="button"
       class="carousel-control absolute top-4 right-4 z-20 grid size-10 place-items-center rounded-full"
       aria-label={copy.close}
-      onclick={() => dialog.close()}
+      onclick={closeDialog}
     >
       <X size={20} aria-hidden="true" />
     </button>
@@ -294,6 +330,61 @@
     animation: backdrop-in 0.15s ease-out both;
   }
 
+  @media (max-width: 767px) {
+    .project-dialog {
+      position: fixed;
+      inset: auto 0 0;
+      width: 100%;
+      max-width: none;
+      max-height: 90dvh;
+      margin: 0;
+      border-right: 0;
+      border-bottom: 0;
+      border-left: 0;
+      border-radius: 1.5rem 1.5rem 0 0;
+      opacity: 0;
+      transform: translateY(100%);
+      transition:
+        transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.3s ease;
+    }
+
+    .project-dialog.sheet-open:not(.sheet-closing) {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .project-dialog::backdrop {
+      opacity: 0;
+      animation: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .project-dialog.sheet-open:not(.sheet-closing)::backdrop {
+      opacity: 1;
+    }
+
+    .project-dialog::before {
+      position: absolute;
+      top: 0.625rem;
+      left: 50%;
+      z-index: 30;
+      width: 2.5rem;
+      height: 0.25rem;
+      border-radius: 9999px;
+      background: var(--muted);
+      content: "";
+      opacity: 0.65;
+      transform: translateX(-50%);
+    }
+
+    .project-dialog > div {
+      max-height: calc(90dvh - 1.75rem);
+      padding-top: 1.75rem;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+
   .divider {
     border-top: 1px solid var(--line);
   }
@@ -347,6 +438,16 @@
   @media (prefers-reduced-motion: reduce) {
     .project-dialog::backdrop {
       animation: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) and (max-width: 767px) {
+    .project-dialog {
+      transition: none;
+    }
+
+    .project-dialog::backdrop {
+      transition: none;
     }
   }
 </style>

@@ -2,7 +2,9 @@
   "name": "personal-portfolio",
   "private": true,
   "packageManager": "bun@1.4.4",
-  "workspaces": ["apps/*"],
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "dev:web": "bun run --filter web dev",
     "dev:api": "bun run --filter api dev",

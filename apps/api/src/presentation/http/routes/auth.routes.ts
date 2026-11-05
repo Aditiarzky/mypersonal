@@ -55,4 +55,3 @@ export function createAuthRoutes(dependencies: {
 
   return authRoutes;
 }
-
