@@ -46,7 +46,7 @@
           <ul class="flex h-fit flex-wrap gap-2">
             {#each group.items as skill (skill.id)}
               <li
-                class="chip flex items-center bg-gray-200 gap-2 rounded-full py-1.5 pr-4 pl-3 text-sm"
+                class="chip flex items-center gap-2 rounded-full py-1.5 pr-4 pl-3 text-sm"
               >
                 {#if skill.iconUrl}
                   <img
