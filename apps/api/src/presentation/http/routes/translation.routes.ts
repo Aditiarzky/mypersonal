@@ -62,17 +62,18 @@ function readTranslations(output: unknown, expectedCount: number): string[] {
   if (
     typeof output !== 'object' ||
     output === null ||
-    !('response' in output) ||
-    typeof output.response !== 'string'
+    !('response' in output)
   ) {
     throw new Error('Workers AI returned an invalid response.');
   }
 
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(output.response);
-  } catch (cause) {
-    throw new Error('Workers AI returned invalid translation JSON.', { cause });
+  let parsed: unknown = output.response;
+  if (typeof parsed === 'string') {
+    try {
+      parsed = JSON.parse(parsed) as unknown;
+    } catch (cause) {
+      throw new Error('Workers AI returned invalid translation JSON.', { cause });
+    }
   }
 
   if (
@@ -114,10 +115,7 @@ export function createTranslationRoutes() {
       ],
       response_format: {
         type: 'json_schema',
-        json_schema: {
-          name: 'translations',
-          schema: translationResponseSchema,
-        },
+        json_schema: translationResponseSchema,
       },
       temperature: 0,
       max_tokens: 8192,
