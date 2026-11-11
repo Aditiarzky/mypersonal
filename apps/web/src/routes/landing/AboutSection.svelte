@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Profile, SocialLink } from "#lib";
   import type { LandingCopy } from "./landing-copy";
+  import { reveal } from "./reveal";
 
   let {
     copy,
@@ -19,7 +20,11 @@
   } = $props();
 </script>
 
-<section id="about" class="mx-auto max-w-6xl scroll-mt-24 px-6 py-24">
+<section
+  id="about"
+  use:reveal
+  class="mx-auto max-w-6xl scroll-mt-24 px-6 py-24"
+>
   <p class="label">✦ {copy.navAbout}</p>
   <div class="mt-6 grid gap-12 md:grid-cols-[1.4fr_1fr] md:items-start">
     <div>

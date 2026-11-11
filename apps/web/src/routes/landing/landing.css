@@ -273,6 +273,19 @@ html {
   animation: hero-in 0.7s ease-out both;
 }
 
+.page .section-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.65s ease,
+    transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.page .section-reveal.section-reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 @keyframes hero-in {
   from {
     opacity: 0;
@@ -289,8 +302,12 @@ html {
     scroll-behavior: auto;
   }
   .page .hero-in,
+  .page .section-reveal,
   .page .menu-in {
     animation: none;
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
   .page {
     transition: none;

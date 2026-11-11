@@ -15,4 +15,17 @@
       "migrations_dir": "migrations",
     },
   ],
+  "ai": {
+    "binding": "AI",
+  },
+  "ratelimits": [
+    {
+      "name": "TRANSLATION_LIMITER",
+      "namespace_id": "11052026",
+      "simple": {
+        "limit": 10,
+        "period": 60,
+      },
+    },
+  ],
 }

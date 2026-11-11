@@ -3,6 +3,7 @@
   import type { Project } from "#lib";
   import type { LandingCopy } from "./landing-copy";
   import ProjectDetailDialog from "./ProjectDetailDialog.svelte";
+  import { reveal } from "./reveal";
 
   let {
     copy,
@@ -43,7 +44,11 @@
   }
 </script>
 
-<section id="work" class="mx-auto max-w-6xl scroll-mt-24 px-6 py-24">
+<section
+  id="work"
+  use:reveal
+  class="mx-auto max-w-6xl scroll-mt-24 px-6 py-24"
+>
   <p class="label">✦ {copy.workLabel}</p>
   <h2
     class="font-dmsans mt-6 max-w-[18ch] text-4xl font-bold tracking-tight text-balance md:text-5xl"

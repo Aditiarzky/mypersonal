@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Experience } from "#lib";
   import type { LandingCopy } from "./landing-copy";
+  import { reveal } from "./reveal";
 
   let {
     copy,
@@ -17,7 +18,11 @@
   } = $props();
 </script>
 
-<section id="experience" class="mx-auto max-w-6xl scroll-mt-24 px-6 py-24">
+<section
+  id="experience"
+  use:reveal
+  class="mx-auto max-w-6xl scroll-mt-24 px-6 py-24"
+>
   <p class="label">✦ {copy.navExperience}</p>
   <h2
     class="font-dmsans mt-6 max-w-[18ch] text-4xl font-bold tracking-tight text-balance md:text-5xl"

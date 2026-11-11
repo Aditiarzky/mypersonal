@@ -14,6 +14,20 @@ Sesi menggunakan cookie bertanda tangan `portfolio_session` dengan atribut HttpO
 | --- | --- | --- | --- |
 | GET | `/api/health` | Publik | Pemeriksaan Worker; respons `{"success":true,"data":{"status":"ok"}}`. |
 
+### Terjemahan
+
+| Method | Path | Auth | Keterangan |
+| --- | --- | --- | --- |
+| POST | `/api/translate` | Publik; wajib Origin frontend | Menerjemahkan batch teks dari bahasa Indonesia ke Inggris menggunakan Cloudflare Workers AI. Dipanggil hanya setelah pengguna memilih bahasa Inggris. |
+
+Body berisi `texts`, array 1–40 string; tiap teks maksimum 2.000 karakter dan total batch maksimum 12.000 karakter. Hasil `translations` memiliki urutan yang sama dengan input. Konten yang diminta dikirim ke model Cloudflare `@cf/meta/m2m100-1.2b` untuk diproses; model ini mendukung zero data retention. Request dibatasi 10 kali per menit per IP dan per lokasi Cloudflare.
+
+```json
+{"texts":["Pengembang Web","Membangun aplikasi yang bermanfaat."]}
+```
+
+Berhasil: `200 {"success":true,"data":{"translations":["Web Developer","Building useful applications."]}}`. Origin yang tidak cocok menghasilkan `403 invalid_origin`, body tidak valid `400 invalid_request`, batas laju terlampaui `429 rate_limited`, dan kegagalan model `500 internal_server_error`.
+
 ### Autentikasi
 
 | Method | Path | Auth | Keterangan |
@@ -73,6 +87,7 @@ Create mengembalikan `201 {"success":true,"data": project}`. PATCH menerima satu
 | 404 | `project_not_found` | Slug atau ID proyek tidak ditemukan. |
 | 404 | `not_found` | Route tidak tersedia. |
 | 409 | `slug_conflict` | Slug proyek sudah digunakan. |
+| 429 | `rate_limited` | Batas request terjemahan per IP terlampaui. |
 | 500 | `internal_server_error` | Terjadi kegagalan server. |
 
 ## Pemeliharaan

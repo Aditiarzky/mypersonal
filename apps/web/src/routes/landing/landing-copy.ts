@@ -8,8 +8,8 @@ export const en = {
   closeMenu: "Close menu",
   switchLang: "Switch to Indonesian",
   translating: "Translating…",
-  noAutoTranslate:
-    "This browser does not support automatic translation. Content from the API will remain in Indonesian.",
+  translationUnavailable:
+    "Translation is currently unavailable. API content will remain in Indonesian.",
   loadError: "Failed to load data. Check your connection and try again.",
   tryAgain: "Try again",
   hi: (name: string) => `Hi, I’m ${name}.`,
@@ -77,8 +77,8 @@ export const id: typeof en = {
   closeMenu: "Tutup menu",
   switchLang: "Ganti ke bahasa Inggris",
   translating: "Menerjemahkan…",
-  noAutoTranslate:
-    "Browser ini belum mendukung terjemahan otomatis. Konten dari API akan tetap ditampilkan dalam bahasa Indonesia.",
+  translationUnavailable:
+    "Layanan terjemahan sedang tidak tersedia. Konten API akan tetap dalam bahasa Indonesia.",
   loadError: "Gagal memuat data. Periksa koneksi Anda lalu coba lagi.",
   tryAgain: "Coba lagi",
   hi: (name: string) => `Halo, saya ${name}.`,

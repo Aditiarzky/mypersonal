@@ -10,6 +10,7 @@
   } from "@lucide/svelte";
   import { Carousel, Controls, Thumbnails } from "flowbite-svelte";
   import type { Project } from "#lib";
+  import { ScrollArea } from "../../lib/components/ui/scroll-area";
   import type { LandingCopy } from "./landing-copy";
 
   let {
@@ -31,6 +32,11 @@
   let activeImageIndex = $state(0);
   let sheetOpen = $state(false);
   let sheetClosing = $state(false);
+  let sheetDragging = $state(false);
+  let sheetDragY = $state(0);
+  let dragStartY = 0;
+  let dragStartedAt = 0;
+  let suppressHandleClick = false;
   // Awalnya light, karena proyek berada di bawah hero (area light).
   // Nilai sebenarnya dibaca dari halaman di onMount.
   let resolvedTheme = $state<"dark" | "light">(theme ?? "light");
@@ -112,6 +118,74 @@
     }, 350);
   }
 
+  function startSheetDrag(event: PointerEvent) {
+    if (
+      !dialog.open ||
+      sheetClosing ||
+      !window.matchMedia("(max-width: 767px)").matches
+    ) {
+      return;
+    }
+
+    event.currentTarget instanceof HTMLElement &&
+      event.currentTarget.setPointerCapture(event.pointerId);
+    dragStartY = event.clientY;
+    dragStartedAt = performance.now();
+    sheetDragY = 0;
+    suppressHandleClick = false;
+    sheetDragging = true;
+  }
+
+  function moveSheetDrag(event: PointerEvent) {
+    if (!sheetDragging) return;
+    sheetDragY = Math.max(0, event.clientY - dragStartY);
+  }
+
+  function finishSheetDrag(event: PointerEvent) {
+    if (!sheetDragging) return;
+
+    const distance = sheetDragY;
+    const elapsed = Math.max(1, performance.now() - dragStartedAt);
+    const threshold = Math.max(48, dialog.getBoundingClientRect().height * 0.08);
+    const quickSwipe = distance > 24 && distance / elapsed > 0.65;
+
+    sheetDragging = false;
+    suppressHandleClick = distance > 6;
+    window.setTimeout(() => (suppressHandleClick = false), 0);
+    if (distance >= threshold || quickSwipe) {
+      closeDialog();
+    } else {
+      sheetDragY = 0;
+    }
+
+    if (
+      event.currentTarget instanceof HTMLElement &&
+      event.currentTarget.hasPointerCapture(event.pointerId)
+    ) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }
+
+  function handleSheetClick() {
+    if (suppressHandleClick) {
+      suppressHandleClick = false;
+      return;
+    }
+    closeDialog();
+  }
+
+  function cancelSheetDrag(event: PointerEvent) {
+    if (!sheetDragging) return;
+    sheetDragging = false;
+    sheetDragY = 0;
+    if (
+      event.currentTarget instanceof HTMLElement &&
+      event.currentTarget.hasPointerCapture(event.pointerId)
+    ) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }
+
   onMount(() => {
     // Ikuti tema halaman yang sedang aktif. Scroll dikunci selama dialog
     // terbuka, jadi tema tidak akan berubah di tengah jalan.
@@ -141,6 +215,8 @@
   class="project-dialog page w-[min(64rem,calc(100%-2rem))] max-w-none overflow-hidden rounded-3xl p-0 backdrop:bg-black/70"
   class:sheet-open={sheetOpen}
   class:sheet-closing={sheetClosing}
+  class:sheet-dragging={sheetDragging}
+  style={`--sheet-drag-y: ${sheetDragY}px`}
   data-theme={resolvedTheme}
   aria-label={`${copy.projectDetails}: ${title}`}
   onclose={onClose}
@@ -152,17 +228,31 @@
     if (event.target === dialog) closeDialog();
   }}
 >
-  <div class="relative max-h-[90dvh] overflow-y-auto">
+  <ScrollArea
+    class="project-scroll relative h-[min(90dvh,48rem)] w-full"
+    scrollbarYClasses="border-l-0"
+  >
     <button
       type="button"
-      class="carousel-control absolute top-4 right-4 z-20 grid size-10 place-items-center rounded-full"
+      class="sheet-handle md:hidden"
+      aria-label={copy.close}
+      onclick={handleSheetClick}
+      onpointerdown={startSheetDrag}
+      onpointermove={moveSheetDrag}
+      onpointerup={finishSheetDrag}
+      onpointercancel={cancelSheetDrag}
+    ></button>
+
+    <button
+      type="button"
+      class="carousel-control absolute top-4 right-4 z-20 hidden size-10 place-items-center rounded-full md:grid"
       aria-label={copy.close}
       onclick={closeDialog}
     >
       <X size={20} aria-hidden="true" />
     </button>
 
-    <div class="grid md:grid-cols-[1.2fr_1fr]">
+    <div class="project-detail-grid grid md:grid-cols-[1.2fr_1fr]">
       <!-- Media: tetap menempel saat deskripsi di kanan di-scroll -->
       <div class="media md:sticky md:top-0 md:self-start">
         {#if images.length > 0}
@@ -310,7 +400,7 @@
         {/if}
       </div>
     </div>
-  </div>
+  </ScrollArea>
 </dialog>
 
 <style>
@@ -351,7 +441,16 @@
 
     .project-dialog.sheet-open:not(.sheet-closing) {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateY(var(--sheet-drag-y, 0px));
+    }
+
+    .project-dialog.sheet-dragging {
+      transition: none;
+    }
+
+    .project-dialog.sheet-closing {
+      opacity: 0;
+      transform: translateY(100%);
     }
 
     .project-dialog::backdrop {
@@ -364,22 +463,38 @@
       opacity: 1;
     }
 
-    .project-dialog::before {
+    .sheet-handle {
       position: absolute;
-      top: 0.625rem;
-      left: 50%;
+      top: 0;
+      left: 0;
       z-index: 30;
+      display: grid;
+      width: 100%;
+      height: 2.25rem;
+      place-items: center;
+      touch-action: none;
+      cursor: grab;
+      background: transparent;
+    }
+
+    .sheet-handle:active {
+      cursor: grabbing;
+    }
+
+    .sheet-handle::after {
       width: 2.5rem;
       height: 0.25rem;
       border-radius: 9999px;
       background: var(--muted);
       content: "";
       opacity: 0.65;
-      transform: translateX(-50%);
     }
 
-    .project-dialog > div {
-      max-height: calc(90dvh - 1.75rem);
+    :global(.project-scroll) {
+      height: calc(90dvh - 2px);
+    }
+
+    .project-detail-grid {
       padding-top: 1.75rem;
       padding-bottom: env(safe-area-inset-bottom);
     }

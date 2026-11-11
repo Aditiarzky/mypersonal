@@ -24,6 +24,7 @@ import { createProjectSkillRoutes } from './presentation/http/routes/project-ski
 import { ExperienceService } from './application/experiences/experience-service';
 import { D1ExperienceRepository } from './infrastructure/database/d1-experience-repository';
 import { createExperienceRoutes } from './presentation/http/routes/experience.routes';
+import { createTranslationRoutes } from './presentation/http/routes/translation.routes';
 import { errorResponse, successResponse } from './presentation/http/api-response';
 
 const app = new Hono<AppEnv>();
@@ -86,6 +87,7 @@ app.route('/api/profiles', createProfileRoutes({ profilesFor, usersFor }));
 app.route('/api/social-links', createSocialLinkRoutes({ linksFor, usersFor }));
 app.route('/api/projects', createProjectSkillRoutes({ projectSkillsFor, usersFor }));
 app.route('/api/experiences', createExperienceRoutes({ experiencesFor, usersFor }));
+app.route('/api/translate', createTranslationRoutes());
 app.notFound((c) => errorResponse(c, 'not_found', 404));
 
 export default app;

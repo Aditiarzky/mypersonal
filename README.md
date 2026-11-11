@@ -93,7 +93,17 @@ Endpoint awal:
 
 Dokumentasi lengkap request, respons, autentikasi, dan error tersedia di [`docs/API.md`](docs/API.md). Perbarui dokumen tersebut setiap kali endpoint ditambah, diubah, atau dihapus.
 
-Login menerima JSON `{"email":"...","password":"..."}`. Password di-hash memakai PBKDF2-HMAC-SHA256 melalui Web Crypto: 600.000 iterasi, salt acak 16 byte, derived key 128 bit. Format terserialisasi panjangnya 59 karakter sehingga sesuai dengan kolom `VARCHAR(60)`. Cookie sesi bertanda tangan berlaku 8 jam dan tidak mengandung password. Endpoint sesi mengambil ulang user dari D1. Untuk fetch browser ke API, set `credentials: 'include'`; CORS mengizinkan hanya origin yang sama dengan `FRONTEND_ORIGIN`, dan request browser yang mengubah state harus memiliki Origin tersebut. Klien seperti HTTPyac yang tidak mengirim header `Origin` dapat memanggil API tanpa CORS.
+Login menerima JSON `{"email":"...","password":"..."}`. Password di-hash memakai PBKDF2-HMAC-SHA256 melalui Web Crypto: 100.000 iterasi (batas Cloudflare Workers Web Crypto), salt acak 16 byte, derived key 128 bit. Format terserialisasi panjangnya 59 karakter sehingga sesuai dengan kolom `VARCHAR(60)`. Cookie sesi bertanda tangan berlaku 8 jam dan tidak mengandung password. Endpoint sesi mengambil ulang user dari D1. Untuk fetch browser ke API, set `credentials: 'include'`; CORS mengizinkan hanya origin yang sama dengan `FRONTEND_ORIGIN`, dan request browser yang mengubah state harus memiliki Origin tersebut. Klien seperti HTTPyac yang tidak mengirim header `Origin` dapat memanggil API tanpa CORS.
+
+Terjemahan konten API menggunakan binding Cloudflare Workers AI (`AI`) dengan model `@cf/meta/m2m100-1.2b`, sehingga tidak bergantung pada fitur khusus browser. Binding dan pembatas laju `TRANSLATION_LIMITER` dikonfigurasi di `apps/api/wrangler.jsonc`. Teks hanya dikirim untuk diterjemahkan setelah pengguna meminta bahasa Inggris; konten diproses oleh Cloudflare AI (zero data retention pada model ini). Endpoint membatasi jumlah dan ukuran teks serta request per IP.
+
+Aktifkan Workers AI pada akun Cloudflare yang digunakan, lalu deploy API agar binding AI dan rate limiter tersedia:
+
+```sh
+bun run --filter api deploy
+```
+
+Pemanggilan AI memakai kuota/billing Workers AI akun Cloudflare. Uji tombol bahasa Inggris setelah deploy; tanpa binding aktif, konten tetap tampil dalam bahasa Indonesia dan frontend menunjukkan pesan kegagalan terjemahan.
 
 Gunakan `COOKIE_SAME_SITE=Lax` untuk frontend/API yang satu site. Bila memakai domain default `*.pages.dev` dan `*.workers.dev`, keduanya lintas site: gunakan `COOKIE_SAME_SITE=None` dengan HTTPS (`Secure`) dan uji kebijakan cookie browser. Custom domain frontend dan API yang berbagi site biasanya lebih andal. Logout menghapus cookie di browser; karena sesi ditandatangani secara stateless, salinan cookie yang dicuri masih berlaku sampai masa 8 jam habis.
 

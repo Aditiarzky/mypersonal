@@ -2,6 +2,7 @@
   import type { SocialLink } from "#lib";
   import type { LandingCopy } from "./landing-copy";
   import type { ContactForm } from "./landing.types";
+  import { reveal } from "./reveal";
 
   let {
     copy,
@@ -20,7 +21,11 @@
   } = $props();
 </script>
 
-<section id="contact" class="mx-auto max-w-6xl scroll-mt-24 px-6 py-24">
+<section
+  id="contact"
+  use:reveal
+  class="mx-auto max-w-6xl scroll-mt-24 px-6 py-24"
+>
   <div class="grid gap-4 grid-cols-1 md:grid-cols-2">
     <div class="panel flex flex-col rounded-[2rem] p-8 md:p-12">
       <p class="text-sm font-medium opacity-80">✦ {copy.contactKicker}</p>

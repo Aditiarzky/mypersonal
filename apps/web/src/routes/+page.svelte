@@ -5,6 +5,7 @@
     projectsApi,
     skillsApi,
     socialLinksApi,
+    translationApi,
     type Experience,
     type Profile,
     type Project,
@@ -29,25 +30,6 @@
   const CONTENT_LANG: Lang = "id";
   const OTHER_KEY = "__other";
 
-  type TranslatorOptions = { sourceLanguage: string; targetLanguage: string };
-  type TranslatorAvailability =
-    | "available"
-    | "downloadable"
-    | "downloading"
-    | "unavailable";
-  type TranslatorInstance = {
-    translate(text: string): Promise<string>;
-    destroy?(): void;
-  };
-  type TranslatorStatic = {
-    availability(options: TranslatorOptions): Promise<TranslatorAvailability>;
-    create(options: TranslatorOptions): Promise<TranslatorInstance>;
-  };
-  const getTranslator = () =>
-    typeof window === "undefined"
-      ? undefined
-      : (window as Window & { Translator?: TranslatorStatic }).Translator;
-
   let loading = $state(true);
   let loadFailed = $state(false);
   let projects = $state<Project[]>([]);
@@ -58,7 +40,6 @@
 
   let lang = $state<Lang>(CONTENT_LANG);
   let translating = $state(false);
-  let canTranslate = $state(false);
   let translated = $state<Record<string, string>>({});
   let notice = $state<string | null>(null);
   let noticeTimer: ReturnType<typeof setTimeout> | undefined;
@@ -128,52 +109,28 @@
     noticeTimer = setTimeout(() => (notice = null), 6000);
   }
 
-  async function translateContent(target: Lang) {
-    const Translator = getTranslator();
-    if (!Translator) {
-      showNotice(copy[target].noAutoTranslate);
-      return;
-    }
+  async function switchLanguage() {
+    const next = otherLang;
+    lang = next;
+    if (next === CONTENT_LANG) return;
     if (translating) return;
 
     const texts = collectTexts().filter((text) => !translated[text]);
     if (!texts.length) return;
 
-    const options = { sourceLanguage: CONTENT_LANG, targetLanguage: target };
     translating = true;
-    let translator: TranslatorInstance | undefined;
     try {
-      const availability = await Translator.availability(options);
-      if (availability === "unavailable") {
-        throw new Error(
-          `Translation pair ${CONTENT_LANG} → ${target} is unavailable.`,
-        );
-      }
-
-      translator = await Translator.create(options);
-      const results: Record<string, string> = {};
-      for (const text of texts) {
-        results[text] = await translator.translate(text);
-      }
+      const translations = await translationApi.translate(texts);
+      const results = Object.fromEntries(
+        texts.map((text, index) => [text, translations[index]]),
+      );
       translated = { ...translated, ...results };
     } catch (cause) {
       console.error("Terjemahan otomatis gagal:", cause);
-      showNotice(copy[target].noAutoTranslate);
+      showNotice(copy[next].translationUnavailable);
     } finally {
-      translator?.destroy?.();
       translating = false;
     }
-  }
-
-  async function switchLanguage() {
-    const next = otherLang;
-    lang = next;
-    if (next === CONTENT_LANG) return;
-    if (!canTranslate) {
-      showNotice(copy[next].noAutoTranslate);
-      return;
-    }
-    await translateContent(next);
   }
 
   function formatMonth(value?: string | null) {
@@ -229,7 +186,6 @@
   });
 
   onMount(() => {
-    canTranslate = !!getTranslator();
     loadData();
     return () => clearTimeout(noticeTimer);
   });

@@ -2,6 +2,7 @@
   import type { Profile, SocialLink } from "#lib";
   import type { LandingCopy } from "./landing-copy";
   import type { LandingNavLink } from "./landing.types";
+  import { reveal } from "./reveal";
 
   let {
     copy,
@@ -22,7 +23,7 @@
   } = $props();
 </script>
 
-<footer class="rule mx-auto max-w-6xl border-t px-6 py-12">
+<footer use:reveal class="rule mx-auto max-w-6xl border-t px-6 py-12">
   <div class="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr]">
     <div>
       <p class="font-dmsans text-2xl font-bold">
