@@ -20,7 +20,7 @@ Sesi menggunakan cookie bertanda tangan `portfolio_session` dengan atribut HttpO
 | --- | --- | --- | --- |
 | POST | `/api/translate` | Publik; wajib Origin frontend | Menerjemahkan batch teks dari bahasa Indonesia ke Inggris menggunakan Cloudflare Workers AI. Dipanggil hanya setelah pengguna memilih bahasa Inggris. |
 
-Body berisi `texts`, array 1–40 string; tiap teks maksimum 2.000 karakter dan total batch maksimum 12.000 karakter. Hasil `translations` memiliki urutan yang sama dengan input. Konten yang diminta dikirim ke model Cloudflare `@cf/meta/m2m100-1.2b` untuk diproses; model ini mendukung zero data retention. Request dibatasi 10 kali per menit per IP dan per lokasi Cloudflare.
+Body berisi `texts`, array 1–40 string; tiap teks maksimum 2.000 karakter dan total batch maksimum 12.000 karakter. Hasil `translations` memiliki urutan yang sama dengan input. Konten dikirim ke model instruksi Cloudflare `@cf/meta/llama-3.3-70b-instruct-fp8-fast`, yang diminta mempertahankan nama orang/tempat, organisasi, merek, aplikasi, produk, nama proyek, URL, akronim, dan istilah teknologi persis seperti sumbernya. Model ini mendukung zero data retention. Request dibatasi 10 kali per menit per IP dan per lokasi Cloudflare.
 
 ```json
 {"texts":["Pengembang Web","Membangun aplikasi yang bermanfaat."]}

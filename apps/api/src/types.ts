@@ -3,7 +3,18 @@ export interface Bindings {
   AI: {
     run(
       model: string,
-      input: { text: string; source_lang: string; target_lang: string },
+      input: {
+        messages: { role: 'system' | 'user'; content: string }[];
+        response_format: {
+          type: 'json_schema';
+          json_schema: {
+            name: string;
+            schema: Record<string, unknown>;
+          };
+        };
+        temperature: number;
+        max_tokens: number;
+      },
     ): Promise<unknown>;
   };
   TRANSLATION_LIMITER: {
